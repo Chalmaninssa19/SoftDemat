@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SoftDemat.Api/SoftDemat.Api.csproj" />
+    <Project Path="src/SoftDemat.Application/SoftDemat.Application.csproj" />
+    <Project Path="src/SoftDemat.Domain/SoftDemat.Domain.csproj" />
+    <Project Path="src/SoftDemat.Infrastructure/SoftDemat.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SoftDemat.Tests/SoftDemat.Tests.csproj" />
+  </Folder>
+</Solution>
