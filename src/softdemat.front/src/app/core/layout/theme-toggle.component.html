@@ -1,0 +1,15 @@
+<button
+  type="button"
+  class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs"
+  [class.border-white/20]="tone() === 'hero'"
+  [class.bg-white/10]="tone() === 'hero'"
+  [class.text-white]="tone() === 'hero'"
+  [class.border-line]="tone() === 'bar'"
+  [class.bg-panel]="tone() === 'bar'"
+  [class.text-content]="tone() === 'bar'"
+  [attr.aria-label]="theme.mode() === 'dark' ? 'Activer le mode clair' : 'Activer le mode sombre'"
+  (click)="theme.toggle()"
+>
+  <span class="inline-block h-2 w-2 rounded-full bg-accent"></span>
+  {{ theme.mode() === 'dark' ? 'Mode clair' : 'Mode sombre' }}
+</button>

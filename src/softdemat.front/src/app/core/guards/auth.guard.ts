@@ -20,14 +20,14 @@ export const adminGuard: CanActivateFn = () => {
   if (auth.session()?.role === 'Administrateur') {
     return true;
   }
-  return router.createUrlTree(['/']);
+  return router.createUrlTree(['/dematerialisation']);
 };
 
 export const guestGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
   if (auth.accessToken()) {
-    return router.createUrlTree(['/']);
+    return router.createUrlTree(['/dematerialisation']);
   }
   return true;
 };

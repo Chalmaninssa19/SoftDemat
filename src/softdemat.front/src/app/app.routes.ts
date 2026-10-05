@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { adminGuard, authGuard } from './core/guards/auth.guard';
 import { ShellComponent } from './core/layout/shell.component';
-import { HomeComponent } from './features/home/home.component';
 
 export const routes: Routes = [
   {
@@ -13,7 +12,7 @@ export const routes: Routes = [
     component: ShellComponent,
     canActivate: [authGuard],
     children: [
-      { path: '', component: HomeComponent, title: 'Accueil' },
+      { path: '', pathMatch: 'full', redirectTo: 'dematerialisation' },
       {
         path: 'profil',
         loadChildren: () => import('./features/profile/profile.routes').then((module) => module.PROFILE_ROUTES),
@@ -39,5 +38,5 @@ export const routes: Routes = [
       },
     ],
   },
-  { path: '**', redirectTo: '' },
+  { path: '**', redirectTo: '/dematerialisation' },
 ];

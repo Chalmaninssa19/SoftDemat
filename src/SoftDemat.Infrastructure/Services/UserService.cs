@@ -8,7 +8,6 @@ using SoftDemat.Domain.Entities;
 using SoftDemat.Domain.Enums;
 using SoftDemat.Domain.Exceptions;
 using SoftDemat.Domain.Interfaces;
-using SoftDemat.Domain.Rules;
 
 namespace SoftDemat.Infrastructure.Services;
 

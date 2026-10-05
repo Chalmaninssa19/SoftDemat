@@ -1,22 +1,11 @@
 <section>
-  <p class="ui-kicker">Administration</p>
-  <h1 class="ui-title mt-1">Utilisateurs</h1>
-  <form class="ui-card mt-6 grid gap-3 p-4 md:grid-cols-2" [formGroup]="form" (ngSubmit)="save()">
-    <input class="ui-field" placeholder="Nom" formControlName="name" />
-    <input class="ui-field" placeholder="Identifiant" formControlName="username" />
-    <input class="ui-field" placeholder="Poste" formControlName="pc" />
-    <select class="ui-field" formControlName="roleId">
-      <option value="0">Utilisateur</option>
-      <option value="1">Administrateur</option>
-    </select>
-    @if (!editingId()) {
-      <input type="password" class="ui-field" placeholder="Mot de passe" formControlName="password" />
-      <input type="password" class="ui-field" placeholder="Confirmation" formControlName="passwordConfirmation" />
-    }
-    <div class="flex justify-end md:col-span-2">
-      <button type="submit" class="ui-btn">{{ editingId() ? 'Mettre à jour' : 'Créer' }}</button>
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <p class="ui-kicker">Administration</p>
+      <h1 class="ui-title mt-1">Utilisateurs</h1>
     </div>
-  </form>
+    <button type="button" class="ui-btn" (click)="openCreate()">Créer</button>
+  </div>
   @if (temporaryPassword()) {
     <p class="mt-4 rounded-lg bg-accent/15 px-3 py-2 text-sm text-accent">Mot de passe temporaire : {{ temporaryPassword() }}</p>
   }
@@ -50,3 +39,60 @@
   </div>
   <p class="mt-3 text-sm text-muted">{{ total() }} utilisateur(s)</p>
 </section>
+
+@if (modalOpen()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" (click)="closeModal()">
+    <form
+      class="ui-card w-full max-w-lg space-y-4 p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="user-dialog-title"
+      [formGroup]="form"
+      (click)="$event.stopPropagation()"
+      (ngSubmit)="save()"
+    >
+      <div>
+        <p class="ui-kicker">Administration</p>
+        <h2 id="user-dialog-title" class="ui-title mt-1">{{ editingId() ? "Modifier l'utilisateur" : 'Nouvel utilisateur' }}</h2>
+      </div>
+      <div>
+        <label class="ui-label" for="user-name">Nom</label>
+        <input id="user-name" class="ui-field" formControlName="name" autocomplete="name" />
+        <app-field-error [message]="fieldError('name')" />
+      </div>
+      <div>
+        <label class="ui-label" for="user-username">Identifiant</label>
+        <input id="user-username" class="ui-field" formControlName="username" autocomplete="off" />
+        <app-field-error [message]="fieldError('username')" />
+      </div>
+      <div>
+        <label class="ui-label" for="user-pc">Poste</label>
+        <input id="user-pc" class="ui-field" formControlName="pc" />
+        <app-field-error [message]="fieldError('pc')" />
+      </div>
+      <div>
+        <label class="ui-label" for="user-role">Rôle</label>
+        <select id="user-role" class="ui-field" formControlName="roleId">
+          <option value="0">Utilisateur</option>
+          <option value="1">Administrateur</option>
+        </select>
+      </div>
+      @if (!editingId()) {
+        <div>
+          <label class="ui-label" for="user-password">Mot de passe</label>
+          <input id="user-password" type="password" class="ui-field" formControlName="password" autocomplete="new-password" />
+          <app-field-error [message]="fieldError('password')" />
+        </div>
+        <div>
+          <label class="ui-label" for="user-password-confirmation">Confirmation</label>
+          <input id="user-password-confirmation" type="password" class="ui-field" formControlName="passwordConfirmation" autocomplete="new-password" />
+          <app-field-error [message]="fieldError('passwordConfirmation')" />
+        </div>
+      }
+      <div class="flex justify-end gap-3">
+        <button type="button" class="ui-btn-ghost" [disabled]="submitting()" (click)="closeModal()">Annuler</button>
+        <button type="submit" class="ui-btn" [disabled]="submitting()">{{ editingId() ? 'Mettre à jour' : 'Créer' }}</button>
+      </div>
+    </form>
+  </div>
+}

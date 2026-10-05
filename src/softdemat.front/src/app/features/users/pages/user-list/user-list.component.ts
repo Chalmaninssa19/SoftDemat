@@ -1,12 +1,13 @@
-import { DestroyRef, ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { DestroyRef, ChangeDetectionStrategy, Component, HostListener, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { UsersApiService, UserAccount } from '../../services/users-api.service';
+import { UsersApiService, UserAccount, UserPayload } from '../../services/users-api.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { FieldErrorComponent } from '../../../../shared/components/field-error/field-error.component';
 
 @Component({
   selector: 'app-user-list',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, FieldErrorComponent],
   templateUrl: './user-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -18,6 +19,8 @@ export class UserListComponent {
   readonly total = signal(0);
   readonly page = signal(1);
   readonly editingId = signal<number | null>(null);
+  readonly modalOpen = signal(false);
+  readonly submitting = signal(false);
   readonly temporaryPassword = signal<string | null>(null);
   readonly form = inject(FormBuilder).nonNullable.group({
     name: ['', Validators.required],
@@ -39,32 +42,47 @@ export class UserListComponent {
     });
   }
 
-  save(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-    const raw = this.form.getRawValue();
-    const payload = { ...raw, roleId: Number(raw.roleId) };
-    const editing = this.editingId();
-    const request = editing ? this.api.update(editing, payload) : this.api.create(payload);
-    request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.notifications.success(editing ? 'Utilisateur modifié.' : 'Utilisateur créé.');
-      this.form.reset({ name: '', username: '', pc: '', roleId: '0', password: '', passwordConfirmation: '' });
-      this.editingId.set(null);
-      this.load();
-    });
+  openCreate(): void {
+    this.editingId.set(null);
+    this.form.reset({ name: '', username: '', pc: '', roleId: '0', password: '', passwordConfirmation: '' });
+    this.setPasswordRequired(true);
+    this.modalOpen.set(true);
   }
 
   edit(user: UserAccount): void {
     this.editingId.set(user.id);
-    this.form.patchValue({
+    this.form.reset({
       name: user.name,
       username: user.username,
       pc: user.pc,
       roleId: user.role === 'Administrateur' ? '1' : '0',
       password: '',
       passwordConfirmation: '',
+    });
+    this.setPasswordRequired(false);
+    this.modalOpen.set(true);
+  }
+
+  closeModal(): void {
+    if (this.submitting()) {
+      return;
+    }
+    this.modalOpen.set(false);
+    this.editingId.set(null);
+  }
+
+  save(): void {
+    if (this.form.invalid || this.passwordsDiffer()) {
+      this.form.markAllAsTouched();
+      return;
+    }
+    const editing = this.editingId();
+    const payload = this.payload();
+    this.submitting.set(true);
+    const request = editing ? this.api.update(editing, payload) : this.api.create(payload);
+    request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (user) => this.onSaved(user, editing),
+      error: () => this.submitting.set(false),
     });
   }
 
@@ -86,5 +104,72 @@ export class UserListComponent {
       this.temporaryPassword.set(password);
       this.notifications.success('Mot de passe temporaire généré.');
     });
+  }
+
+  fieldError(name: 'name' | 'username' | 'pc' | 'password' | 'passwordConfirmation'): string | null {
+    const control = this.form.controls[name];
+    if (!control.touched) {
+      return null;
+    }
+    if (control.hasError('required')) {
+      return 'Ce champ est obligatoire.';
+    }
+    if (name === 'passwordConfirmation' && this.passwordsDiffer()) {
+      return 'Vérifiez votre mot de passe.';
+    }
+    return null;
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.modalOpen()) {
+      this.closeModal();
+    }
+  }
+
+  private onSaved(user: UserAccount, editing: number | null): void {
+    this.submitting.set(false);
+    if (editing) {
+      this.replaceUser(user);
+      this.notifications.success('Utilisateur modifié.');
+    } else {
+      this.insertCreated(user);
+      this.notifications.success('Utilisateur créé.');
+    }
+    this.modalOpen.set(false);
+    this.editingId.set(null);
+  }
+
+  private insertCreated(user: UserAccount): void {
+    let inserted = false;
+    this.users.update((items) => {
+      inserted = !items.some((item) => item.id === user.id);
+      return [user, ...items.filter((item) => item.id !== user.id)].slice(0, 20);
+    });
+    if (inserted) {
+      this.total.update((count) => count + 1);
+    }
+  }
+
+  private replaceUser(user: UserAccount): void {
+    this.users.update((items) => items.map((item) => (item.id === user.id ? user : item)));
+  }
+
+  private payload(): UserPayload {
+    const raw = this.form.getRawValue();
+    return { ...raw, roleId: Number(raw.roleId) };
+  }
+
+  private passwordsDiffer(): boolean {
+    const value = this.form.getRawValue();
+    return value.password !== value.passwordConfirmation;
+  }
+
+  private setPasswordRequired(required: boolean): void {
+    const passwordValidators = required ? [Validators.required] : [];
+    this.form.controls.password.setValidators(passwordValidators);
+    this.form.controls.passwordConfirmation.setValidators(required ? [Validators.required] : []);
+    this.form.controls.password.updateValueAndValidity();
+    this.form.controls.passwordConfirmation.updateValueAndValidity();
   }
 }

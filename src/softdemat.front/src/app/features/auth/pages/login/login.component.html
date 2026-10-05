@@ -1,18 +1,69 @@
-<main class="flex min-h-screen items-center justify-center bg-white px-4">
-  <form class="w-full max-w-md rounded-xl border border-greige p-8 shadow-sm" [formGroup]="form" (ngSubmit)="submit()">
-    <p class="text-2xl font-bold italic text-navy">Softwell</p>
-    <h1 class="mt-2 text-lg text-navy-soft">Connexion à SOFT-DEMAT</h1>
-    <label class="mt-6 block text-sm font-medium text-navy" for="username">Nom d'utilisateur</label>
-    <input id="username" class="mt-1 w-full rounded-md border border-greige px-3 py-2 outline-none focus:border-navy" formControlName="username" autocomplete="username" />
-    <app-field-error [message]="fieldError('username')" />
-    <label class="mt-4 block text-sm font-medium text-navy" for="password">Mot de passe</label>
-    <input id="password" type="password" class="mt-1 w-full rounded-md border border-greige px-3 py-2 outline-none focus:border-navy" formControlName="password" autocomplete="current-password" />
-    <app-field-error [message]="fieldError('password')" />
-    @if (errorMessage()) {
-      <p class="mt-4 text-sm text-navy">{{ errorMessage() }}</p>
-    }
-    <button type="submit" class="mt-6 w-full rounded-md bg-navy px-4 py-2 font-medium text-white disabled:opacity-60" [disabled]="submitting()">
-      {{ submitting() ? 'Connexion…' : 'Se connecter' }}
-    </button>
-  </form>
+<main class="login-stage relative px-4 py-8 text-white">
+  <div class="absolute top-4 right-4 z-10">
+    <app-theme-toggle tone="hero" />
+  </div>
+  <div class="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl items-center gap-12">
+    <section class="hidden flex-1 lg:block">
+      <div class="flex items-center gap-3">
+        <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 text-sm font-bold">SD</span>
+        <span>
+          <span class="block font-semibold">SOFT-DEMAT</span>
+          <span class="block text-sm text-white/70">Dématérialisation des bulletins</span>
+        </span>
+      </div>
+      <h1 class="mt-10 max-w-xl text-5xl leading-tight font-semibold">
+        Simplifiez et optimisez <span class="text-accent">vos envois</span>
+      </h1>
+      <p class="mt-5 max-w-lg text-sm text-white/75">
+        SOFT-DEMAT vous accompagne dans l'envoi des bulletins de paie, de la sélection jusqu'à l'archivage.
+      </p>
+      <ul class="mt-12 grid max-w-xl grid-cols-4 gap-4 text-center text-xs text-white/80">
+        <li>
+          <span class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-white/10">1</span>
+          Envoyer les bulletins
+        </li>
+        <li>
+          <span class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-white/10">2</span>
+          Suivre les envois
+        </li>
+        <li>
+          <span class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-white/10">3</span>
+          Archiver les PDF
+        </li>
+        <li>
+          <span class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-white/10">4</span>
+          Sécuriser l'accès
+        </li>
+      </ul>
+    </section>
+    <form class="login-card w-full max-w-md rounded-2xl p-8 shadow-2xl lg:ml-auto" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="flex items-center gap-3">
+        <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-navy text-xs font-bold text-white">SD</span>
+        <span>
+          <span class="block text-sm font-semibold">SOFT-DEMAT</span>
+          <span class="block text-xs opacity-70">Dématérialisation des bulletins</span>
+        </span>
+      </div>
+      <h2 class="mt-6 text-2xl font-semibold">Bienvenue !</h2>
+      <p class="mt-1 text-sm opacity-70">Connectez-vous pour accéder à votre espace SOFT-DEMAT.</p>
+      <label class="mt-6 block text-sm font-medium" for="username">Nom d'utilisateur</label>
+      <input id="username" class="login-field mt-1 w-full rounded-lg px-3 py-2 outline-none" formControlName="username" autocomplete="username" placeholder="Identifiant" />
+      <app-field-error [message]="fieldError('username')" />
+      <label class="mt-4 block text-sm font-medium" for="password">Mot de passe</label>
+      <div class="relative mt-1">
+        <input id="password" class="login-field w-full rounded-lg px-3 py-2 pr-16 outline-none" [type]="showPassword() ? 'text' : 'password'" formControlName="password" autocomplete="current-password" placeholder="Entrez votre mot de passe" />
+        <button type="button" class="absolute top-1/2 right-3 -translate-y-1/2 text-xs opacity-70" (click)="togglePassword()">
+          {{ showPassword() ? 'Masquer' : 'Voir' }}
+        </button>
+      </div>
+      <app-field-error [message]="fieldError('password')" />
+      @if (errorMessage()) {
+        <p class="mt-4 text-sm">{{ errorMessage() }}</p>
+      }
+      <button type="submit" class="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-navy px-4 py-3 font-medium text-white disabled:opacity-60" [disabled]="submitting()">
+        {{ submitting() ? 'Connexion…' : 'Se connecter' }}
+      </button>
+      <p class="mt-6 border-t border-black/10 pt-4 text-center text-xs opacity-60">Softwell · SOFT-DEMAT</p>
+    </form>
+  </div>
 </main>

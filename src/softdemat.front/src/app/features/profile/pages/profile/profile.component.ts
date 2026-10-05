@@ -18,7 +18,7 @@ export class ProfileComponent {
   readonly mustChange = this.auth.mustChangePassword;
   readonly form = inject(FormBuilder).nonNullable.group({
     currentPassword: ['', Validators.required],
-    newPassword: ['', [Validators.required, Validators.minLength(12)]],
+    newPassword: ['', Validators.required],
     confirmation: ['', Validators.required],
   });
 

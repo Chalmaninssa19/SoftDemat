@@ -1,6 +1,5 @@
 using FluentValidation;
 using SoftDemat.Application.DTOs;
-using SoftDemat.Domain.Rules;
 
 namespace SoftDemat.Application.Validators;
 

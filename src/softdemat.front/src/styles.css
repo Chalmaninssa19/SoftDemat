@@ -16,6 +16,18 @@
   --color-muted: #8ea0b8;
   --color-accent: #f5c518;
   --color-accent-deep: #c9a227;
+  --color-content: #ffffff;
+}
+
+html.light {
+  --color-ink: #eef2f8;
+  --color-sidebar: #ffffff;
+  --color-panel: #ffffff;
+  --color-line: #d8e0ec;
+  --color-field: #f7f9fc;
+  --color-content: #122033;
+  --color-muted: #5d6b82;
+  --color-accent-deep: #8a6a10;
 }
 
 body {
@@ -23,10 +35,48 @@ body {
   font-family: var(--font-sans);
 }
 
-.app-shell input,
-.app-shell select,
-.app-shell textarea {
+html.dark .app-shell input,
+html.dark .app-shell select,
+html.dark .app-shell textarea {
   color-scheme: dark;
+}
+
+html.light .app-shell input,
+html.light .app-shell select,
+html.light .app-shell textarea {
+  color-scheme: light;
+}
+
+.login-stage {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    radial-gradient(900px 520px at 18% 18%, #2a5ea8 0%, #17356d 42%, #0d2248 100%);
+  background-size: 52px 52px, 52px 52px, auto;
+  min-height: 100vh;
+}
+
+.login-card {
+  background: #ffffff;
+  color: #122033;
+}
+
+html.dark .login-card {
+  background: #141c31;
+  border: 1px solid #2a3650;
+  color: #ffffff;
+}
+
+.login-card .login-field {
+  background: #f7f9fc;
+  border: 1px solid #d8e0ec;
+  color: #122033;
+}
+
+html.dark .login-card .login-field {
+  background: #101828;
+  border-color: #2a3650;
+  color: #ffffff;
 }
 
 .ui-kicker {
@@ -38,7 +88,7 @@ body {
 }
 
 .ui-title {
-  color: white;
+  color: var(--color-content);
   font-size: 1.5rem;
   font-weight: 600;
   line-height: 1.3;
@@ -51,7 +101,7 @@ body {
 }
 
 .ui-label {
-  color: #e8eef7;
+  color: var(--color-content);
   display: block;
   font-size: 0.875rem;
   margin-bottom: 0.35rem;
@@ -61,7 +111,7 @@ body {
   background: var(--color-field);
   border: 1px solid var(--color-line);
   border-radius: 0.5rem;
-  color: white;
+  color: var(--color-content);
   font-size: 0.875rem;
   outline: none;
   padding: 0.55rem 0.75rem;
@@ -89,7 +139,7 @@ body {
   background: transparent;
   border: 1px solid var(--color-line);
   border-radius: 0.5rem;
-  color: white;
+  color: var(--color-content);
   font-size: 0.875rem;
   padding: 0.55rem 1rem;
 }

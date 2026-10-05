@@ -3,10 +3,11 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { ThemeToggleComponent } from './theme-toggle.component';
 
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, ThemeToggleComponent],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -60,7 +61,7 @@ export class ShellComponent {
     if (path.startsWith('/profil')) {
       return 'Profil';
     }
-    return 'Accueil';
+    return 'Dématérialisation';
   }
 
   private letters(name: string): string {
