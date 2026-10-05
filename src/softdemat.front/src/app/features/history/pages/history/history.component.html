@@ -1,42 +1,43 @@
 <section>
-  <h1 class="text-2xl font-semibold text-navy">Historique des envois</h1>
-  <form class="mt-6 grid gap-3 md:grid-cols-5" [formGroup]="filters" (ngSubmit)="apply()">
-    <input type="date" class="rounded-md border border-greige px-3 py-2" formControlName="from" />
-    <input type="date" class="rounded-md border border-greige px-3 py-2" formControlName="to" />
-    <select class="rounded-md border border-greige px-3 py-2" formControlName="establishmentCode">
+  <p class="ui-kicker">Suivi</p>
+  <h1 class="ui-title mt-1">Historique des envois</h1>
+  <form class="ui-card mt-6 grid gap-3 p-4 md:grid-cols-5" [formGroup]="filters" (ngSubmit)="apply()">
+    <input type="date" class="ui-field" formControlName="from" />
+    <input type="date" class="ui-field" formControlName="to" />
+    <select class="ui-field" formControlName="establishmentCode">
       <option value="">Tous les établissements</option>
       @for (item of establishments(); track item.code) {
         <option [value]="item.code">{{ item.name }}</option>
       }
     </select>
-    <select class="rounded-md border border-greige px-3 py-2" formControlName="employeeMatricule">
+    <select class="ui-field" formControlName="employeeMatricule">
       <option value="">Tous les salariés</option>
       @for (item of employees(); track item.matricule) {
         <option [value]="item.matricule">{{ item.fullName }}</option>
       }
     </select>
-    <select class="rounded-md border border-greige px-3 py-2" formControlName="sent">
+    <select class="ui-field" formControlName="sent">
       <option [ngValue]="true">Déjà envoyés</option>
       <option [ngValue]="false">Non envoyés</option>
     </select>
-    <button type="submit" class="rounded-md bg-navy px-4 py-2 text-white">Rechercher</button>
+    <button type="submit" class="ui-btn md:col-start-5">Rechercher</button>
   </form>
-  <div class="mt-6 overflow-x-auto">
+  <div class="ui-card mt-6 overflow-x-auto">
     <table class="w-full min-w-[48rem] text-left text-sm">
-      <thead class="bg-navy text-white">
-        <tr>
-          <th class="px-3 py-2">Date</th>
-          <th class="px-3 py-2">Matricule</th>
-          <th class="px-3 py-2">Nom</th>
-          <th class="px-3 py-2">E-mail</th>
-          <th class="px-3 py-2">Paie</th>
-          <th class="px-3 py-2">Fichier</th>
-          <th class="px-3 py-2">Résultat</th>
+      <thead class="text-muted">
+        <tr class="border-b border-line">
+          <th class="px-3 py-2 font-medium">Date</th>
+          <th class="px-3 py-2 font-medium">Matricule</th>
+          <th class="px-3 py-2 font-medium">Nom</th>
+          <th class="px-3 py-2 font-medium">E-mail</th>
+          <th class="px-3 py-2 font-medium">Paie</th>
+          <th class="px-3 py-2 font-medium">Fichier</th>
+          <th class="px-3 py-2 font-medium">Résultat</th>
         </tr>
       </thead>
       <tbody>
         @for (item of items(); track item.id) {
-          <tr class="border-b border-greige">
+          <tr class="border-b border-line">
             <td class="px-3 py-2">{{ item.sentAt | dateFr }}</td>
             <td class="px-3 py-2">{{ item.matricule }}</td>
             <td class="px-3 py-2">{{ item.name }}</td>
@@ -50,10 +51,10 @@
     </table>
   </div>
   <div class="mt-4 flex items-center justify-between">
-    <p class="text-sm text-navy-soft">{{ total() }} ligne(s)</p>
+    <p class="text-sm text-muted">{{ total() }} ligne(s)</p>
     <div class="flex gap-2">
-      <button type="button" class="rounded-md border px-3 py-1" [disabled]="page() <= 1" (click)="changePage(page() - 1)">Précédent</button>
-      <button type="button" class="rounded-md border px-3 py-1" [disabled]="page() * 20 >= total()" (click)="changePage(page() + 1)">Suivant</button>
+      <button type="button" class="ui-btn-ghost" [disabled]="page() <= 1" (click)="changePage(page() - 1)">Précédent</button>
+      <button type="button" class="ui-btn-ghost" [disabled]="page() * 20 >= total()" (click)="changePage(page() + 1)">Suivant</button>
     </div>
   </div>
 </section>

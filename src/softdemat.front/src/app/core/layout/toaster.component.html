@@ -2,12 +2,13 @@
   @for (toast of notifications.toasts(); track toast.id) {
     <button
       type="button"
-      class="rounded-md border px-4 py-3 text-left text-sm shadow"
-      [class.border-navy]="toast.kind !== 'error'"
-      [class.bg-navy]="toast.kind === 'success'"
-      [class.text-white]="toast.kind === 'success'"
-      [class.bg-gold-light]="toast.kind === 'error'"
-      [class.text-navy]="toast.kind !== 'success'"
+      class="rounded-lg border px-4 py-3 text-left text-sm shadow"
+      [class.border-accent]="toast.kind !== 'error'"
+      [class.bg-ink]="toast.kind !== 'error'"
+      [class.text-white]="toast.kind !== 'error'"
+      [class.border-line]="toast.kind === 'error'"
+      [class.bg-panel]="toast.kind === 'error'"
+      [class.text-accent]="toast.kind === 'error'"
       (click)="notifications.dismiss(toast.id)"
     >
       {{ toast.message }}

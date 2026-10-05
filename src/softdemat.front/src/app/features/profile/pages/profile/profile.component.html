@@ -1,17 +1,26 @@
-<section class="max-w-lg">
-  <h1 class="text-2xl font-semibold text-navy">Profil</h1>
-  @if (mustChange()) {
-    <p class="mt-2 rounded-md bg-gold-light px-3 py-2 text-sm text-navy">Vous devez changer votre mot de passe avant de continuer.</p>
-  }
-  <form class="mt-6 space-y-4" [formGroup]="form" (ngSubmit)="submit()">
-    <label class="block text-sm font-medium text-navy" for="current">Ancien mot de passe</label>
-    <input id="current" type="password" class="w-full rounded-md border border-greige px-3 py-2" formControlName="currentPassword" />
-    <label class="block text-sm font-medium text-navy" for="next">Nouveau mot de passe</label>
-    <input id="next" type="password" class="w-full rounded-md border border-greige px-3 py-2" formControlName="newPassword" />
-    <p class="text-xs text-navy-soft">12 caractères minimum et 3 familles parmi majuscule, minuscule, chiffre et caractère spécial.</p>
-    <label class="block text-sm font-medium text-navy" for="confirm">Confirmation</label>
-    <input id="confirm" type="password" class="w-full rounded-md border border-greige px-3 py-2" formControlName="confirmation" />
-    <app-field-error [message]="confirmationError()" />
-    <button type="submit" class="rounded-md bg-navy px-4 py-2 text-white">Enregistrer</button>
+<section class="mx-auto max-w-lg">
+  <form class="ui-card space-y-4 p-6" [formGroup]="form" (ngSubmit)="submit()">
+    <p class="ui-kicker">Profil</p>
+    <h1 class="ui-title">Mot de passe</h1>
+    @if (mustChange()) {
+      <p class="rounded-lg bg-accent/15 px-3 py-2 text-sm text-accent">Vous devez changer votre mot de passe avant de continuer.</p>
+    }
+    <div>
+      <label class="ui-label" for="current">Ancien mot de passe</label>
+      <input id="current" type="password" class="ui-field" formControlName="currentPassword" />
+    </div>
+    <div>
+      <label class="ui-label" for="next">Nouveau mot de passe</label>
+      <input id="next" type="password" class="ui-field" formControlName="newPassword" />
+      <p class="mt-1 text-xs text-muted">12 caractères minimum et 3 familles parmi majuscule, minuscule, chiffre et caractère spécial.</p>
+    </div>
+    <div>
+      <label class="ui-label" for="confirm">Confirmation</label>
+      <input id="confirm" type="password" class="ui-field" formControlName="confirmation" />
+      <app-field-error [message]="confirmationError()" />
+    </div>
+    <div class="flex justify-end">
+      <button type="submit" class="ui-btn">Enregistrer</button>
+    </div>
   </form>
 </section>
