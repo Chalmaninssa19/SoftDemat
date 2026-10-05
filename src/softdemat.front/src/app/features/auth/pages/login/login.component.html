@@ -1,0 +1,18 @@
+<main class="flex min-h-screen items-center justify-center bg-white px-4">
+  <form class="w-full max-w-md rounded-xl border border-greige p-8 shadow-sm" [formGroup]="form" (ngSubmit)="submit()">
+    <p class="text-2xl font-bold italic text-navy">Softwell</p>
+    <h1 class="mt-2 text-lg text-navy-soft">Connexion à SOFT-DEMAT</h1>
+    <label class="mt-6 block text-sm font-medium text-navy" for="username">Nom d'utilisateur</label>
+    <input id="username" class="mt-1 w-full rounded-md border border-greige px-3 py-2 outline-none focus:border-navy" formControlName="username" autocomplete="username" />
+    <app-field-error [message]="fieldError('username')" />
+    <label class="mt-4 block text-sm font-medium text-navy" for="password">Mot de passe</label>
+    <input id="password" type="password" class="mt-1 w-full rounded-md border border-greige px-3 py-2 outline-none focus:border-navy" formControlName="password" autocomplete="current-password" />
+    <app-field-error [message]="fieldError('password')" />
+    @if (errorMessage()) {
+      <p class="mt-4 text-sm text-navy">{{ errorMessage() }}</p>
+    }
+    <button type="submit" class="mt-6 w-full rounded-md bg-navy px-4 py-2 font-medium text-white disabled:opacity-60" [disabled]="submitting()">
+      {{ submitting() ? 'Connexion…' : 'Se connecter' }}
+    </button>
+  </form>
+</main>

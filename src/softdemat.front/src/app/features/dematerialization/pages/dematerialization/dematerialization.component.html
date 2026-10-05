@@ -1,0 +1,74 @@
+<section>
+  <h1 class="text-2xl font-semibold text-navy">Dématérialisation</h1>
+  <p class="mt-2 text-sm text-navy-soft">Dossier : {{ currentFolder() || 'racine du serveur' }}</p>
+  <div class="mt-4 flex flex-wrap gap-2">
+    @if (currentFolder()) {
+      <button type="button" class="rounded-md border border-navy px-3 py-1 text-sm text-navy" (click)="open(parentFolder())">Dossier parent</button>
+    }
+    @for (folder of folders(); track folder) {
+      <button type="button" class="rounded-md bg-gold-light px-3 py-1 text-sm text-navy" (click)="open(currentFolder() ? currentFolder() + '/' + folder : folder)">{{ folder }}</button>
+    }
+  </div>
+  <form class="mt-6 grid gap-3 md:grid-cols-5" [formGroup]="filters" (ngSubmit)="applyFilters()">
+    <select class="rounded-md border border-greige px-3 py-2" formControlName="establishmentCode">
+      <option value="">Tous les établissements</option>
+      @for (item of establishments(); track item.code) {
+        <option [value]="item.code">{{ item.name }}</option>
+      }
+    </select>
+    <input class="rounded-md border border-greige px-3 py-2" placeholder="Matricule exact" formControlName="employeeMatricule" />
+    <input class="rounded-md border border-greige px-3 py-2" placeholder="Matricule contient" formControlName="matricule" />
+    <input class="rounded-md border border-greige px-3 py-2" placeholder="Nom contient" formControlName="name" />
+    <button type="submit" class="rounded-md border border-navy px-3 py-2 text-navy">Filtrer</button>
+    <select class="rounded-md border border-greige px-3 py-2 md:col-span-2" formControlName="mailTemplateId">
+      @for (template of templates(); track template.id) {
+        <option [value]="template.id">{{ template.mailType }}</option>
+      }
+    </select>
+  </form>
+  <div class="mt-6 overflow-x-auto">
+    <table class="w-full min-w-[48rem] text-left text-sm">
+      <thead class="bg-navy text-white">
+        <tr>
+          <th class="px-3 py-2">Envoi</th>
+          <th class="px-3 py-2">Matricule</th>
+          <th class="px-3 py-2">Salarié</th>
+          <th class="px-3 py-2">E-mail</th>
+          <th class="px-3 py-2">Établissement</th>
+          <th class="px-3 py-2">Paie</th>
+          <th class="px-3 py-2">Statut</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (file of files(); track file.fileName) {
+          <tr class="border-b border-greige">
+            <td class="px-3 py-2">
+              <input type="checkbox" [checked]="isSelected(file.fileName)" (change)="toggle(file.fileName, $event)" />
+            </td>
+            <td class="px-3 py-2">{{ file.matricule }}</td>
+            <td class="px-3 py-2">{{ file.fullName }}</td>
+            <td class="px-3 py-2">{{ file.email }}</td>
+            <td class="px-3 py-2">{{ file.establishmentName }}</td>
+            <td class="px-3 py-2">{{ file.payDate | dateFr }}</td>
+            <td class="px-3 py-2">{{ file.alreadySent ? 'Déjà envoyé' : 'À envoyer' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <div class="mt-4 flex items-center justify-between gap-3">
+    <p class="text-sm text-navy-soft">{{ total() }} bulletin(s)</p>
+    <div class="flex gap-2">
+      <button type="button" class="rounded-md border px-3 py-1" [disabled]="page() <= 1" (click)="changePage(page() - 1)">Précédent</button>
+      <button type="button" class="rounded-md border px-3 py-1" [disabled]="page() * 20 >= total()" (click)="changePage(page() + 1)">Suivant</button>
+      <button type="button" class="rounded-md bg-navy px-4 py-2 text-white disabled:opacity-60" [disabled]="sending()" (click)="send()">Envoyer</button>
+    </div>
+  </div>
+  @if (result(); as outcome) {
+    <ul class="mt-6 space-y-2 text-sm">
+      @for (item of outcome.items; track item.fileName) {
+        <li class="rounded-md border border-greige px-3 py-2">{{ item.matricule }} — {{ item.sent ? 'Envoyé' : 'Non envoyé' }} — {{ item.detail }}</li>
+      }
+    </ul>
+  }
+</section>

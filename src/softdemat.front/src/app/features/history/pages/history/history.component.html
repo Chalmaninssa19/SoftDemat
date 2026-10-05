@@ -1,0 +1,59 @@
+<section>
+  <h1 class="text-2xl font-semibold text-navy">Historique des envois</h1>
+  <form class="mt-6 grid gap-3 md:grid-cols-5" [formGroup]="filters" (ngSubmit)="apply()">
+    <input type="date" class="rounded-md border border-greige px-3 py-2" formControlName="from" />
+    <input type="date" class="rounded-md border border-greige px-3 py-2" formControlName="to" />
+    <select class="rounded-md border border-greige px-3 py-2" formControlName="establishmentCode">
+      <option value="">Tous les établissements</option>
+      @for (item of establishments(); track item.code) {
+        <option [value]="item.code">{{ item.name }}</option>
+      }
+    </select>
+    <select class="rounded-md border border-greige px-3 py-2" formControlName="employeeMatricule">
+      <option value="">Tous les salariés</option>
+      @for (item of employees(); track item.matricule) {
+        <option [value]="item.matricule">{{ item.fullName }}</option>
+      }
+    </select>
+    <select class="rounded-md border border-greige px-3 py-2" formControlName="sent">
+      <option [ngValue]="true">Déjà envoyés</option>
+      <option [ngValue]="false">Non envoyés</option>
+    </select>
+    <button type="submit" class="rounded-md bg-navy px-4 py-2 text-white">Rechercher</button>
+  </form>
+  <div class="mt-6 overflow-x-auto">
+    <table class="w-full min-w-[48rem] text-left text-sm">
+      <thead class="bg-navy text-white">
+        <tr>
+          <th class="px-3 py-2">Date</th>
+          <th class="px-3 py-2">Matricule</th>
+          <th class="px-3 py-2">Nom</th>
+          <th class="px-3 py-2">E-mail</th>
+          <th class="px-3 py-2">Paie</th>
+          <th class="px-3 py-2">Fichier</th>
+          <th class="px-3 py-2">Résultat</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of items(); track item.id) {
+          <tr class="border-b border-greige">
+            <td class="px-3 py-2">{{ item.sentAt | dateFr }}</td>
+            <td class="px-3 py-2">{{ item.matricule }}</td>
+            <td class="px-3 py-2">{{ item.name }}</td>
+            <td class="px-3 py-2">{{ item.email }}</td>
+            <td class="px-3 py-2">{{ item.payDate | dateFr }}</td>
+            <td class="px-3 py-2">{{ item.fileName }}</td>
+            <td class="px-3 py-2">{{ item.sent ? 'Envoyé' : 'Non envoyé' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <div class="mt-4 flex items-center justify-between">
+    <p class="text-sm text-navy-soft">{{ total() }} ligne(s)</p>
+    <div class="flex gap-2">
+      <button type="button" class="rounded-md border px-3 py-1" [disabled]="page() <= 1" (click)="changePage(page() - 1)">Précédent</button>
+      <button type="button" class="rounded-md border px-3 py-1" [disabled]="page() * 20 >= total()" (click)="changePage(page() + 1)">Suivant</button>
+    </div>
+  </div>
+</section>

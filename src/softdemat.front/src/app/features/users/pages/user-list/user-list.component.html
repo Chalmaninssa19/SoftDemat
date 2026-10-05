@@ -1,0 +1,49 @@
+<section>
+  <h1 class="text-2xl font-semibold text-navy">Utilisateurs</h1>
+  <form class="mt-6 grid gap-3 rounded-xl border border-greige p-4 md:grid-cols-2" [formGroup]="form" (ngSubmit)="save()">
+    <input class="rounded-md border border-greige px-3 py-2" placeholder="Nom" formControlName="name" />
+    <input class="rounded-md border border-greige px-3 py-2" placeholder="Identifiant" formControlName="username" />
+    <input class="rounded-md border border-greige px-3 py-2" placeholder="Poste" formControlName="pc" />
+    <select class="rounded-md border border-greige px-3 py-2" formControlName="roleId">
+      <option value="0">Utilisateur</option>
+      <option value="1">Administrateur</option>
+    </select>
+    @if (!editingId()) {
+      <input type="password" class="rounded-md border border-greige px-3 py-2" placeholder="Mot de passe" formControlName="password" />
+      <input type="password" class="rounded-md border border-greige px-3 py-2" placeholder="Confirmation" formControlName="passwordConfirmation" />
+    }
+    <button type="submit" class="rounded-md bg-navy px-4 py-2 text-white md:col-span-2">{{ editingId() ? 'Mettre à jour' : 'Créer' }}</button>
+  </form>
+  @if (temporaryPassword()) {
+    <p class="mt-4 rounded-md bg-gold-light px-3 py-2 text-sm text-navy">Mot de passe temporaire : {{ temporaryPassword() }}</p>
+  }
+  <div class="mt-6 overflow-x-auto">
+    <table class="w-full min-w-[40rem] text-left text-sm">
+      <thead class="bg-navy text-white">
+        <tr>
+          <th class="px-3 py-2">Nom</th>
+          <th class="px-3 py-2">Identifiant</th>
+          <th class="px-3 py-2">Rôle</th>
+          <th class="px-3 py-2">Poste</th>
+          <th class="px-3 py-2">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of users(); track user.id) {
+          <tr class="border-b border-greige">
+            <td class="px-3 py-2">{{ user.name }}</td>
+            <td class="px-3 py-2">{{ user.username }}</td>
+            <td class="px-3 py-2">{{ user.role }}</td>
+            <td class="px-3 py-2">{{ user.pc }}</td>
+            <td class="px-3 py-2 space-x-2">
+              <button type="button" class="text-navy underline" (click)="edit(user)">Modifier</button>
+              <button type="button" class="text-navy underline" (click)="reset(user)">Réinitialiser</button>
+              <button type="button" class="text-navy underline" (click)="remove(user)">Supprimer</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <p class="mt-3 text-sm text-navy-soft">{{ total() }} utilisateur(s)</p>
+</section>

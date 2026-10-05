@@ -1,0 +1,30 @@
+<div class="min-h-screen bg-white text-black">
+  <header class="border-b border-greige">
+    <div class="flex items-center justify-between gap-4 px-4 py-4 md:px-8">
+      <div>
+        <p class="text-xl font-bold italic text-navy">Softwell</p>
+        <p class="text-sm text-navy-soft">SOFT-DEMAT</p>
+      </div>
+      <div class="text-right text-sm">
+        <a routerLink="/profil" class="font-semibold text-navy">{{ session()?.name }}</a>
+        <p class="text-navy-soft">{{ session()?.sageDatabaseName || 'Base Sage non configurée' }}</p>
+      </div>
+    </div>
+  </header>
+  <div class="md:flex">
+    <nav class="flex gap-2 overflow-x-auto border-b border-greige p-3 md:w-64 md:flex-col md:border-r md:border-b-0">
+      <a routerLink="/" routerLinkActive="bg-navy !text-white" [routerLinkActiveOptions]="{ exact: true }" class="rounded-md px-3 py-2 text-sm text-navy hover:bg-gold-light">Accueil</a>
+      <a routerLink="/dematerialisation" routerLinkActive="bg-navy !text-white" class="rounded-md px-3 py-2 text-sm text-navy hover:bg-gold-light">Dématérialisation</a>
+      <a routerLink="/historique" routerLinkActive="bg-navy !text-white" class="rounded-md px-3 py-2 text-sm text-navy hover:bg-gold-light">Historique</a>
+      @if (isAdmin()) {
+        <a routerLink="/parametrage" routerLinkActive="bg-navy !text-white" class="rounded-md px-3 py-2 text-sm text-navy hover:bg-gold-light">Paramétrage</a>
+        <a routerLink="/utilisateurs" routerLinkActive="bg-navy !text-white" class="rounded-md px-3 py-2 text-sm text-navy hover:bg-gold-light">Utilisateurs</a>
+      }
+      <a routerLink="/profil" routerLinkActive="bg-navy !text-white" class="rounded-md px-3 py-2 text-sm text-navy hover:bg-gold-light">Profil</a>
+      <button type="button" class="rounded-md px-3 py-2 text-left text-sm text-navy hover:bg-gold-light" (click)="logout()">Se déconnecter</button>
+    </nav>
+    <main class="min-w-0 flex-1 p-4 md:p-8">
+      <router-outlet />
+    </main>
+  </div>
+</div>

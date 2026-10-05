@@ -1,0 +1,22 @@
+<section class="max-w-xl">
+  <h1 class="text-2xl font-semibold text-navy">Connexion Sage</h1>
+  <p class="mt-2 text-sm text-navy-soft">Le mot de passe n'est jamais réaffiché. Laissez-le vide pour conserver celui déjà enregistré.</p>
+  <form class="mt-6 space-y-4" [formGroup]="form" (ngSubmit)="save()">
+    <label class="block text-sm font-medium text-navy" for="server">Serveur</label>
+    <input id="server" class="w-full rounded-md border border-greige px-3 py-2" formControlName="server" />
+    <label class="block text-sm font-medium text-navy" for="database">Base</label>
+    <input id="database" class="w-full rounded-md border border-greige px-3 py-2" formControlName="databaseName" />
+    <label class="flex items-center gap-2 text-sm text-navy">
+      <input type="checkbox" formControlName="windowsAuthentication" />
+      Authentification Windows
+    </label>
+    <label class="block text-sm font-medium text-navy" for="login">Identifiant SQL</label>
+    <input id="login" class="w-full rounded-md border border-greige px-3 py-2" formControlName="login" />
+    <label class="block text-sm font-medium text-navy" for="sage-password">Mot de passe SQL</label>
+    <input id="sage-password" type="password" class="w-full rounded-md border border-greige px-3 py-2" formControlName="password" autocomplete="new-password" />
+    <div class="flex gap-3">
+      <button type="button" class="rounded-md border border-navy px-4 py-2 text-navy" (click)="test()">Tester</button>
+      <button type="submit" class="rounded-md bg-navy px-4 py-2 text-white">Enregistrer</button>
+    </div>
+  </form>
+</section>

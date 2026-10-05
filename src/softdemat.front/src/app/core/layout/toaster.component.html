@@ -1,0 +1,16 @@
+<div class="fixed top-4 right-4 z-50 flex w-80 flex-col gap-2">
+  @for (toast of notifications.toasts(); track toast.id) {
+    <button
+      type="button"
+      class="rounded-md border px-4 py-3 text-left text-sm shadow"
+      [class.border-navy]="toast.kind !== 'error'"
+      [class.bg-navy]="toast.kind === 'success'"
+      [class.text-white]="toast.kind === 'success'"
+      [class.bg-gold-light]="toast.kind === 'error'"
+      [class.text-navy]="toast.kind !== 'success'"
+      (click)="notifications.dismiss(toast.id)"
+    >
+      {{ toast.message }}
+    </button>
+  }
+</div>

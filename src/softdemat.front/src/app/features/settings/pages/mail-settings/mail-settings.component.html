@@ -1,0 +1,25 @@
+<section class="grid gap-8 lg:grid-cols-2">
+  <form class="space-y-4" [formGroup]="general" (ngSubmit)="saveGeneral()">
+    <h1 class="text-2xl font-semibold text-navy">Archivage</h1>
+    <label class="block text-sm font-medium text-navy" for="archive">Dossier d'archive</label>
+    <input id="archive" class="w-full rounded-md border border-greige px-3 py-2" formControlName="archiveFolder" />
+    <label class="block text-sm font-medium text-navy" for="cc">Copie (Cc)</label>
+    <input id="cc" class="w-full rounded-md border border-greige px-3 py-2" formControlName="cc" />
+    <button type="submit" class="rounded-md bg-navy px-4 py-2 text-white">Enregistrer</button>
+  </form>
+  <form class="space-y-4" [formGroup]="mail" (ngSubmit)="saveMail()">
+    <h2 class="text-2xl font-semibold text-navy">Modèle de mail</h2>
+    <label class="block text-sm font-medium text-navy" for="type">Type existant</label>
+    <select id="type" class="w-full rounded-md border border-greige px-3 py-2" [value]="mail.controls.id.value" (change)="select(+$any($event.target).value)">
+      @for (template of templates(); track template.id) {
+        <option [value]="template.id">{{ template.mailType }}</option>
+      }
+    </select>
+    <p class="text-xs text-navy-soft">Balises : MM, AA, PNOM, NOM, MAT. Les retours à la ligne deviennent des sauts HTML.</p>
+    <label class="block text-sm font-medium text-navy" for="object">Objet</label>
+    <input id="object" class="w-full rounded-md border border-greige px-3 py-2" formControlName="mailObject" />
+    <label class="block text-sm font-medium text-navy" for="content">Contenu</label>
+    <textarea id="content" rows="8" class="w-full rounded-md border border-greige px-3 py-2" formControlName="mailContent"></textarea>
+    <button type="submit" class="rounded-md bg-navy px-4 py-2 text-white">Enregistrer le modèle</button>
+  </form>
+</section>

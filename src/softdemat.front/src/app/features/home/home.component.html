@@ -1,0 +1,14 @@
+<section>
+  <h1 class="text-2xl font-semibold text-navy">Bonjour {{ session()?.name }}</h1>
+  <p class="mt-2 text-navy-soft">Base Sage : {{ session()?.sageDatabaseName || 'non configurée' }}</p>
+  <div class="mt-8 grid gap-4 md:grid-cols-2">
+    <a routerLink="/dematerialisation" class="rounded-xl border border-greige p-6 hover:border-navy">
+      <h2 class="text-lg font-semibold text-navy">Dématérialisation</h2>
+      <p class="mt-2 text-sm text-navy-soft">Envoyer les bulletins du mois.</p>
+    </a>
+    <a routerLink="/historique" class="rounded-xl border border-greige p-6 hover:border-navy">
+      <h2 class="text-lg font-semibold text-navy">Historique</h2>
+      <p class="mt-2 text-sm text-navy-soft">Contrôler les envois et les échecs.</p>
+    </a>
+  </div>
+</section>
