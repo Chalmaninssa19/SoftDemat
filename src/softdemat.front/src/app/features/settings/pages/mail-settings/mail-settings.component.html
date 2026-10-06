@@ -1,10 +1,38 @@
 <section class="grid gap-6 lg:grid-cols-2">
   <form class="ui-card space-y-4 p-6" [formGroup]="general" (ngSubmit)="saveGeneral()">
     <p class="ui-kicker">Envoi</p>
-    <h1 class="ui-title">Archivage</h1>
+    <h1 class="ui-title">Archivage et expéditeur</h1>
+    <a routerLink="/parametrage/sage" class="text-sm text-accent">Connexion Sage</a>
+    <p class="text-sm text-muted">Le destinataire de chaque bulletin reste l'e-mail Sage du matricule. L'expéditeur est choisi ci-dessous.</p>
+    <div>
+      <label class="ui-label" for="tool">Outil d'expéditeur</label>
+      <select id="tool" class="ui-field" formControlName="senderTool">
+        <option value="Outlook">Outlook du poste</option>
+        <option value="Address">Adresse saisie</option>
+      </select>
+    </div>
+    @if (general.controls.senderTool.value === 'Outlook') {
+      <p class="text-xs text-muted">À l'envoi, SoftDemat lit le compte Outlook par défaut du PC où l'application est lancée, c'est-à-dire le poste de la personne qui clique sur Envoyer. Outlook peut demander une confirmation.</p>
+      <button type="button" class="ui-btn-ghost" (click)="detectOutlook()">Lire l'adresse Outlook</button>
+      @if (outlookAddress()) {
+        <p class="text-sm">Expéditeur détecté : {{ outlookAddress() }}</p>
+      }
+    } @else {
+      <div>
+        <label class="ui-label" for="sender">Adresse de l'expéditeur</label>
+        <input id="sender" class="ui-field" formControlName="senderAddress" />
+        <p class="mt-1 text-xs text-muted">L'envoi utilise alors le serveur SMTP configuré pour l'API.</p>
+      </div>
+    }
     <div>
       <label class="ui-label" for="archive">Dossier d'archive</label>
-      <input id="archive" class="ui-field" formControlName="archiveFolder" />
+      <div class="flex gap-2">
+        <input id="archive" class="ui-field min-w-0 flex-1" formControlName="archiveFolder" />
+        <button type="button" class="ui-btn-ghost shrink-0" [disabled]="browsing()" (click)="browse()">
+          {{ browsing() ? 'Choix…' : 'Parcourir' }}
+        </button>
+      </div>
+      <p class="mt-1 text-xs text-muted">Le parcours s'ouvre sur le poste de SoftDemat, comme le dossier d'archive du Desktop. Les bulletins envoyés y sont copiés.</p>
     </div>
     <div>
       <label class="ui-label" for="cc">Copie (Cc)</label>

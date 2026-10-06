@@ -17,6 +17,7 @@ public sealed class SdtDbContext : DbContext
     public DbSet<SageConnectionSettings> SageConnections => Set<SageConnectionSettings>();
     public DbSet<AuthSession> AuthSessions => Set<AuthSession>();
     public DbSet<UserSecurity> UserSecurities => Set<UserSecurity>();
+    public DbSet<MailSenderSetting> MailSenderSettings => Set<MailSenderSetting>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -27,5 +28,6 @@ public sealed class SdtDbContext : DbContext
         modelBuilder.ApplyConfiguration(new SageConnectionSettingsConfiguration());
         modelBuilder.ApplyConfiguration(new AuthSessionConfiguration());
         modelBuilder.ApplyConfiguration(new UserSecurityConfiguration());
+        modelBuilder.ApplyConfiguration(new MailSenderSettingConfiguration());
     }
 }

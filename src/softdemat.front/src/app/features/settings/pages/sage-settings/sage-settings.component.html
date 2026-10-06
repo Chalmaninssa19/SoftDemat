@@ -2,6 +2,7 @@
   <form class="ui-card space-y-4 p-6" [formGroup]="form" (ngSubmit)="save()">
     <p class="ui-kicker">Paramétrage</p>
     <h1 class="ui-title">Connexion Sage</h1>
+    <a routerLink="/parametrage/envoi" class="text-sm text-accent">Envoi et archivage</a>
     <p class="text-sm text-muted">Le mot de passe n'est jamais réaffiché. Laissez-le vide pour conserver celui déjà enregistré.</p>
     <div>
       <label class="ui-label" for="server">Serveur</label>

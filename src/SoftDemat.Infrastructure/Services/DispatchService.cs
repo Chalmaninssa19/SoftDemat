@@ -17,7 +17,7 @@ public sealed class DispatchService : IDispatchService
     private readonly IDispatchRepository _dispatches;
     private readonly IPayslipDirectory _directory;
     private readonly IPayslipArchiver _archiver;
-    private readonly IMailSender _mailSender;
+    private readonly IPayslipMailer _mailer;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<DispatchService> _logger;
 
@@ -28,7 +28,7 @@ public sealed class DispatchService : IDispatchService
         IDispatchRepository dispatches,
         IPayslipDirectory directory,
         IPayslipArchiver archiver,
-        IMailSender mailSender,
+        IPayslipMailer mailer,
         IUnitOfWork unitOfWork,
         ILogger<DispatchService> logger)
     {
@@ -38,13 +38,18 @@ public sealed class DispatchService : IDispatchService
         _dispatches = dispatches;
         _directory = directory;
         _archiver = archiver;
-        _mailSender = mailSender;
+        _mailer = mailer;
         _unitOfWork = unitOfWork;
         _logger = logger;
     }
 
-    public async Task<DispatchResultResponse> SendAsync(DispatchRequest request, CancellationToken cancellationToken = default)
+    public async Task<DispatchResultResponse> SendAsync(
+        DispatchRequest request,
+        int userId,
+        bool onSenderMachine,
+        CancellationToken cancellationToken = default)
     {
+        PayslipUploadPolicy.EnsureOwned(request.RelativeFolder, userId);
         var template = await _templates.GetByIdAsync(request.MailTemplateId, cancellationToken)
             ?? throw new NotFoundException("Modèle de mail introuvable.");
         var parameter = await _parameters.GetAsync(cancellationToken)
@@ -65,7 +70,7 @@ public sealed class DispatchService : IDispatchService
         foreach (var file in files)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            results.Add(await SendOneAsync(request.RelativeFolder, file, lookup, template, parameter, cancellationToken));
+            results.Add(await SendOneAsync(request.RelativeFolder, file, lookup, template, parameter, onSenderMachine, cancellationToken));
         }
 
         var missing = selected.Count - files.Count;
@@ -106,18 +111,24 @@ public sealed class DispatchService : IDispatchService
         IReadOnlyDictionary<string, CurrentEmployee> lookup,
         MailTemplate template,
         GeneralParameter parameter,
+        bool onSenderMachine,
         CancellationToken cancellationToken)
     {
         lookup.TryGetValue(file.Matricule.Trim(), out var employee);
         var fullName = (employee?.FullName ?? string.Empty).Replace("'", " ");
         if (string.IsNullOrWhiteSpace(employee?.Email))
-            return await RecordAsync(file, fullName, false, "E-mail absent.", cancellationToken);
+            return await RecordAsync(file, fullName, false, "E-mail du salarié absent pour ce matricule.", cancellationToken);
 
         try
         {
-            await DeliverAsync(relativeFolder, file, employee!, template, parameter, fullName, cancellationToken);
+            var from = await DeliverAsync(relativeFolder, file, employee!, template, parameter, fullName, onSenderMachine, cancellationToken);
             _logger.LogInformation("Bulletin {Matricule} envoyé", file.Matricule.Trim());
-            return await RecordAsync(file, fullName, true, "Envoyé.", cancellationToken);
+            return await RecordAsync(file, fullName, true, $"Envoyé de {from} vers {employee!.Email.Trim()}.", cancellationToken);
+        }
+        catch (DomainException exception)
+        {
+            _logger.LogWarning("Bulletin {Matricule} non envoyé : {Reason}", file.Matricule.Trim(), exception.Message);
+            return await RecordAsync(file, fullName, false, exception.Message, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -126,23 +137,26 @@ public sealed class DispatchService : IDispatchService
         }
     }
 
-    private async Task DeliverAsync(
+    private async Task<string> DeliverAsync(
         string relativeFolder,
         ParsedPayslipFile file,
         CurrentEmployee employee,
         MailTemplate template,
         GeneralParameter parameter,
         string fullName,
+        bool onSenderMachine,
         CancellationToken cancellationToken)
     {
         var source = _directory.ResolveFile(relativeFolder, file.FileName);
         var subject = MailContentComposer.Apply(template.MailObject, file.PayDate, employee.FirstName, fullName, file.Matricule);
         var body = MailContentComposer.Apply(template.MailContent, file.PayDate, employee.FirstName, fullName, file.Matricule);
         var attachmentName = ArchivePathBuilder.BuildFileName(template.MailCode, file.PayDate, file.Matricule, employee.FirstName);
-        await _mailSender.SendAsync(
+        var from = await _mailer.SendAsync(
             new OutgoingMail(employee.Email.Trim(), parameter.Cc, subject, body, source, attachmentName),
+            onSenderMachine,
             cancellationToken);
         _archiver.Archive(source, parameter.ArchiveFolder, file.PayDate, employee.EstablishmentName, template.MailCode, file.Matricule, employee.FirstName);
+        return from;
     }
 
     private async Task<DispatchItemResponse> RecordAsync(

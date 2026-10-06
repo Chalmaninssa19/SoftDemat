@@ -6,7 +6,8 @@ public sealed record OutgoingMail(
     string Subject,
     string HtmlBody,
     string AttachmentPath,
-    string AttachmentName);
+    string AttachmentName,
+    string? From = null);
 
 public interface IMailSender
 {

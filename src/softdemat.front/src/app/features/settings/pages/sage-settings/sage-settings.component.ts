@@ -1,12 +1,13 @@
 import { DestroyRef, ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { SettingsApiService } from '../../services/settings-api.service';
 
 @Component({
   selector: 'app-sage-settings',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './sage-settings.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

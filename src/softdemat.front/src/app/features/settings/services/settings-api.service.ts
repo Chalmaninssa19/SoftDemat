@@ -30,6 +30,8 @@ export interface MailTemplate {
 export interface GeneralParameter {
   archiveFolder: string;
   cc: string;
+  senderTool: string;
+  senderAddress: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -72,9 +74,26 @@ export class SettingsApiService {
       .pipe(map((response) => response.data));
   }
 
-  saveGeneral(archiveFolder: string, cc: string): Observable<GeneralParameter> {
+  saveGeneral(payload: GeneralParameter): Observable<GeneralParameter> {
     return this.http
-      .put<ApiResponse<GeneralParameter>>(`${environment.apiUrl}/general-parameters`, { archiveFolder, cc: cc || null })
+      .put<ApiResponse<GeneralParameter>>(`${environment.apiUrl}/general-parameters`, {
+        archiveFolder: payload.archiveFolder,
+        cc: payload.cc || null,
+        senderTool: payload.senderTool,
+        senderAddress: payload.senderAddress || null,
+      })
       .pipe(map((response) => response.data));
+  }
+
+  browseArchive(): Observable<string> {
+    return this.http
+      .post<ApiResponse<{ folder: string }>>(`${environment.apiUrl}/general-parameters/archive-browse`, {})
+      .pipe(map((response) => response.data.folder ?? ''));
+  }
+
+  outlookSender(): Observable<string> {
+    return this.http
+      .get<ApiResponse<{ email: string }>>(`${environment.apiUrl}/general-parameters/outlook-sender`)
+      .pipe(map((response) => response.data.email));
   }
 }

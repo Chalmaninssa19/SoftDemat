@@ -1,12 +1,13 @@
 import { DestroyRef, ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { MailTemplate, SettingsApiService } from '../../services/settings-api.service';
 
 @Component({
   selector: 'app-mail-settings',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './mail-settings.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -15,9 +16,13 @@ export class MailSettingsComponent {
   private readonly notifications = inject(NotificationService);
   private readonly destroyRef = inject(DestroyRef);
   readonly templates = signal<MailTemplate[]>([]);
+  readonly outlookAddress = signal('');
+  readonly browsing = signal(false);
   readonly general = inject(FormBuilder).nonNullable.group({
     archiveFolder: ['', Validators.required],
     cc: [''],
+    senderTool: ['Outlook', Validators.required],
+    senderAddress: [''],
   });
   readonly mail = inject(FormBuilder).nonNullable.group({
     id: [0, Validators.min(1)],
@@ -53,8 +58,32 @@ export class MailSettingsComponent {
       return;
     }
     const value = this.general.getRawValue();
-    this.api.saveGeneral(value.archiveFolder, value.cc).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    if (value.senderTool === 'Address' && !value.senderAddress.trim()) {
+      this.notifications.error('Indiquez l’adresse de l’expéditeur.');
+      return;
+    }
+    this.api.saveGeneral(value).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.notifications.success('Paramètres d’envoi enregistrés.');
+    });
+  }
+
+  browse(): void {
+    this.browsing.set(true);
+    this.api.browseArchive().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (folder) => {
+        this.browsing.set(false);
+        if (folder) {
+          this.general.controls.archiveFolder.setValue(folder);
+        }
+      },
+      error: () => this.browsing.set(false),
+    });
+  }
+
+  detectOutlook(): void {
+    this.api.outlookSender().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((email) => {
+      this.outlookAddress.set(email);
+      this.notifications.success('Adresse Outlook lue sur ce poste.');
     });
   }
 

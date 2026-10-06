@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\SoftDemat.Application\SoftDemat.Application.csproj" />
     <ProjectReference Include="..\..\src\SoftDemat.Domain\SoftDemat.Domain.csproj" />
+    <ProjectReference Include="..\..\src\SoftDemat.Infrastructure\SoftDemat.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

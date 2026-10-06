@@ -28,9 +28,9 @@ public sealed class SageDbContext : DbContext
             entity.ToSqlQuery(
                 """
                 SELECT
-                    LTRIM(RTRIM(s.MatriculeSalarie)) AS Matricule,
-                    s.Nom AS LastName,
-                    s.Prenom AS FirstName,
+                    ISNULL(LTRIM(RTRIM(s.MatriculeSalarie)), '') AS Matricule,
+                    ISNULL(s.Nom, '') AS LastName,
+                    ISNULL(s.Prenom, '') AS FirstName,
                     ISNULL(s.Email, '') AS Email,
                     LTRIM(RTRIM(ISNULL(e.CodeEtab, ''))) AS EstablishmentCode,
                     LTRIM(RTRIM(ISNULL(t.Intitule, ''))) AS EstablishmentName
@@ -46,7 +46,7 @@ public sealed class SageDbContext : DbContext
             entity.HasNoKey();
             entity.ToSqlQuery(
                 """
-                SELECT LTRIM(RTRIM(CodeEtab)) AS Code, LTRIM(RTRIM(Intitule)) AS Name
+                SELECT ISNULL(LTRIM(RTRIM(CodeEtab)), '') AS Code, ISNULL(LTRIM(RTRIM(Intitule)), '') AS Name
                 FROM T_ETA
                 """);
         });

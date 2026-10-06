@@ -2,7 +2,7 @@ namespace SoftDemat.Application.DTOs;
 
 public sealed class PayslipFileQuery
 {
-    public string RelativeFolder { get; init; } = string.Empty;
+    public string? RelativeFolder { get; init; }
     public string? EstablishmentCode { get; init; }
     public string? EmployeeMatricule { get; init; }
     public string? Matricule { get; init; }

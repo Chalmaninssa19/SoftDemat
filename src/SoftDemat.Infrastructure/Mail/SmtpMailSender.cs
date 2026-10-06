@@ -19,11 +19,12 @@ public sealed class SmtpMailSender : IMailSender
 
     public async Task SendAsync(OutgoingMail mail, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(_options.Host) || string.IsNullOrWhiteSpace(_options.From))
+        var from = string.IsNullOrWhiteSpace(mail.From) ? _options.From : mail.From;
+        if (string.IsNullOrWhiteSpace(_options.Host) || string.IsNullOrWhiteSpace(from))
             throw new DomainException("Le serveur SMTP n'est pas configuré.");
 
         var message = new MimeMessage();
-        message.From.Add(MailboxAddress.Parse(_options.From));
+        message.From.Add(MailboxAddress.Parse(from));
         message.To.Add(MailboxAddress.Parse(mail.To));
         if (!string.IsNullOrWhiteSpace(mail.Bcc))
             message.Bcc.Add(MailboxAddress.Parse(mail.Bcc));
