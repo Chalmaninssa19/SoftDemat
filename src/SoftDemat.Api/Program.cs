@@ -1,6 +1,7 @@
 using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -10,6 +11,7 @@ using SoftDemat.Api.Middleware;
 using SoftDemat.Api.OpenApi;
 using SoftDemat.Application;
 using SoftDemat.Application.DTOs;
+using SoftDemat.Domain.Rules;
 using SoftDemat.Infrastructure;
 using SoftDemat.Infrastructure.Context;
 using SoftDemat.Infrastructure.Options;
@@ -25,6 +27,13 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddControllers(options => options.Filters.Add<RequestValidationFilter>());
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = PayslipUploadPolicy.MaxTransportBytes;
+    options.ValueCountLimit = 420;
+});
+builder.WebHost.ConfigureKestrel(options =>
+    options.Limits.MaxRequestBodySize = PayslipUploadPolicy.MaxTransportBytes);
 builder.Services.AddOpenApi(options => options.AddDocumentTransformer<BearerSecuritySchemeTransformer>());
 
 var jwt = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();

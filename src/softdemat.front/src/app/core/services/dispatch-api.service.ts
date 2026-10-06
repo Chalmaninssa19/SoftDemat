@@ -56,6 +56,18 @@ export interface PayslipQuery {
   page: number;
 }
 
+export interface PayslipUploadRejection {
+  name: string;
+  reason: string;
+}
+
+export interface PayslipUploadResult {
+  relativeFolder: string;
+  folderName: string;
+  accepted: string[];
+  rejected: PayslipUploadRejection[];
+}
+
 export interface MailChoice {
   id: number;
   mailType: string;
@@ -92,6 +104,17 @@ export class DispatchApiService {
     params = setIfPresent(params, 'name', query.name);
     return this.http
       .get<ApiResponse<PaginatedResult<PayslipFile>>>(`${environment.apiUrl}/payslip-files`, { params })
+      .pipe(map((response) => response.data));
+  }
+
+  upload(files: { file: File; relativePath: string }[]): Observable<PayslipUploadResult> {
+    const body = new FormData();
+    for (const item of files) {
+      body.append('files', item.file, item.file.name);
+      body.append('paths', item.relativePath);
+    }
+    return this.http
+      .post<ApiResponse<PayslipUploadResult>>(`${environment.apiUrl}/payslip-files/uploads`, body)
       .pipe(map((response) => response.data));
   }
 

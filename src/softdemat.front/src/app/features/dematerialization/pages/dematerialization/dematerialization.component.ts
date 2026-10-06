@@ -1,10 +1,11 @@
 import { DestroyRef, ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { DispatchApiService, DispatchResult, MailChoice, PayslipFile } from '../../../../core/services/dispatch-api.service';
+import { DispatchApiService, DispatchResult, MailChoice, PayslipFile, PayslipUploadRejection } from '../../../../core/services/dispatch-api.service';
 import { Establishment, ReferenceApiService } from '../../../../core/services/reference-api.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { DateFrPipe } from '../../../../shared/pipes/date-fr.pipe';
+import { readPayslipFolder } from '../../payslip-folder';
 
 @Component({
   selector: 'app-dematerialization',
@@ -17,8 +18,10 @@ export class DematerializationComponent {
   private readonly references = inject(ReferenceApiService);
   private readonly notifications = inject(NotificationService);
   private readonly destroyRef = inject(DestroyRef);
-  readonly folders = signal<string[]>([]);
   readonly currentFolder = signal('');
+  readonly folderName = signal('');
+  readonly uploading = signal(false);
+  readonly rejections = signal<PayslipUploadRejection[]>([]);
   readonly files = signal<PayslipFile[]>([]);
   readonly total = signal(0);
   readonly page = signal(1);
@@ -43,23 +46,34 @@ export class DematerializationComponent {
         this.filters.controls.mailTemplateId.setValue(items[0].id);
       }
     });
-    this.open('');
+  }
+
+  chooseFolder(input: HTMLInputElement): void {
+    input.click();
+  }
+
+  onFolderSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const selection = readPayslipFolder(input.files);
+    input.value = '';
+    this.rejections.set(selection.errors.map((reason) => ({ name: '', reason })));
+    if (selection.files.length === 0) {
+      this.notifications.error(selection.errors[0] ?? 'Aucun bulletin PDF dans ce dossier.');
+      return;
+    }
+
+    this.folderName.set(selection.folderName);
+    this.uploading.set(true);
+    this.api.upload(selection.files).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (result) => this.afterUpload(result.relativeFolder, result.folderName, result.rejected, result.accepted.length),
+      error: () => this.uploading.set(false),
+    });
   }
 
   open(folder: string): void {
     this.currentFolder.set(folder);
-    this.api.folders(folder).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((listing) => {
-      this.folders.set(listing.children);
-      this.currentFolder.set(listing.relativeFolder);
-    });
     this.page.set(1);
     this.load();
-  }
-
-  parentFolder(): string {
-    const parts = this.currentFolder().split('/').filter(Boolean);
-    parts.pop();
-    return parts.join('/');
   }
 
   applyFilters(): void {
@@ -101,6 +115,19 @@ export class DematerializationComponent {
       },
       error: () => this.sending.set(false),
     });
+  }
+
+  private afterUpload(relativeFolder: string, folderName: string, rejected: PayslipUploadRejection[], accepted: number): void {
+    this.uploading.set(false);
+    this.rejections.set([...this.rejections(), ...rejected]);
+    if (!relativeFolder) {
+      this.notifications.error('Aucun bulletin n\'a été retenu.');
+      return;
+    }
+
+    this.folderName.set(folderName || this.folderName());
+    this.notifications.success(`${accepted} bulletin(s) prêt(s). L'envoi reste une action séparée.`);
+    this.open(relativeFolder);
   }
 
   private load(): void {

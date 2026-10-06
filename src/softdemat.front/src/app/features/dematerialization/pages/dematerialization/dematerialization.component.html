@@ -1,15 +1,26 @@
 <section>
   <p class="ui-kicker">Bulletins</p>
   <h1 class="ui-title mt-1">Dématérialisation</h1>
-  <p class="mt-2 text-sm text-muted">Dossier : {{ currentFolder() || 'racine du serveur' }}</p>
-  <div class="mt-4 flex flex-wrap gap-2">
-    @if (currentFolder()) {
-      <button type="button" class="ui-btn-ghost" (click)="open(parentFolder())">Dossier parent</button>
+  <p class="mt-2 text-sm text-muted">
+    @if (folderName()) {
+      Dossier sélectionné : {{ folderName() }}. Les PDF restent 24 heures sur le serveur, uniquement pour préparer l'envoi.
+    } @else {
+      Choisissez le dossier des bulletins sur ce poste. Le chemin local n'est pas transmis.
     }
-    @for (folder of folders(); track folder) {
-      <button type="button" class="rounded-lg bg-accent/15 px-3 py-1 text-sm text-accent" (click)="open(currentFolder() ? currentFolder() + '/' + folder : folder)">{{ folder }}</button>
-    }
+  </p>
+  <div class="mt-4 flex flex-wrap items-center gap-3">
+    <input #folderPicker class="hidden" type="file" accept="application/pdf,.pdf" multiple webkitdirectory (change)="onFolderSelected($event)" />
+    <button type="button" class="ui-btn" [disabled]="uploading()" (click)="chooseFolder(folderPicker)">
+      {{ uploading() ? 'Téléversement…' : 'Choisir un dossier' }}
+    </button>
   </div>
+  @if (rejections().length > 0) {
+    <ul class="mt-4 space-y-1 text-sm text-accent">
+      @for (item of rejections(); track $index) {
+        <li>{{ item.name ? item.name + ' : ' : '' }}{{ item.reason }}</li>
+      }
+    </ul>
+  }
   <form class="ui-card mt-6 grid gap-3 p-4 md:grid-cols-5" [formGroup]="filters" (ngSubmit)="applyFilters()">
     <select class="ui-field" formControlName="establishmentCode">
       <option value="">Tous les établissements</option>
@@ -41,6 +52,11 @@
         </tr>
       </thead>
       <tbody>
+        @if (!currentFolder()) {
+          <tr><td class="px-3 py-6 text-muted" colspan="7">Choisissez un dossier de bulletins sur ce poste.</td></tr>
+        } @else if (files().length === 0) {
+          <tr><td class="px-3 py-6 text-muted" colspan="7">Aucun bulletin ne correspond à ces filtres.</td></tr>
+        }
         @for (file of files(); track file.fileName) {
           <tr class="border-b border-line">
             <td class="px-3 py-2">

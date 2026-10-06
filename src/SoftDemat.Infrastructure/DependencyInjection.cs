@@ -30,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped<IUserSecurityRepository, UserSecurityRepository>();
         services.AddScoped<IMailTemplateRepository, MailTemplateRepository>();
         services.AddScoped<IGeneralParameterRepository, GeneralParameterRepository>();
+        services.AddScoped<IMailSenderSettingRepository, MailSenderSettingRepository>();
         services.AddScoped<ISageConnectionRepository, SageConnectionRepository>();
         services.AddScoped<IEmployeeRepository, EmployeeRepository>();
         services.AddScoped<IEstablishmentRepository, EstablishmentRepository>();
@@ -40,18 +41,25 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
         services.AddSingleton<ILegacyPasswordProtector, LegacyPasswordProtector>();
         services.AddSingleton<ITokenIssuer, JwtTokenIssuer>();
+        services.AddSingleton<PayslipStorageLocation>();
+        services.AddSingleton<PayslipUploadStore>();
         services.AddSingleton<IPayslipDirectory, PayslipDirectory>();
         services.AddSingleton<IPayslipArchiver, PayslipArchiver>();
         services.AddSingleton<IMailSender, SmtpMailSender>();
+        services.AddSingleton<ILocalMailbox, OutlookMailbox>();
+        services.AddSingleton<IArchiveFolderPicker, WindowsArchiveFolderPicker>();
+        services.AddScoped<IPayslipMailer, PayslipMailer>();
         services.AddSingleton<ISageConnectionTester, SageConnectionTester>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IGeneralParameterService, GeneralParameterService>();
+        services.AddScoped<IWorkstationToolService, WorkstationToolService>();
         services.AddScoped<IMailTemplateService, MailTemplateService>();
         services.AddScoped<ISageConnectionService, SageConnectionService>();
         services.AddScoped<IEmployeeService, EmployeeService>();
         services.AddScoped<IEstablishmentService, EstablishmentService>();
         services.AddScoped<IPayslipFileService, PayslipFileService>();
+        services.AddScoped<IPayslipUploadService, PayslipUploadService>();
         services.AddScoped<IDispatchService, DispatchService>();
         return services;
     }

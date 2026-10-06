@@ -1,18 +1,17 @@
-using Microsoft.Extensions.Options;
 using SoftDemat.Domain.Exceptions;
 using SoftDemat.Domain.Interfaces;
-using SoftDemat.Domain.Rules;
-using SoftDemat.Infrastructure.Options;
 
 namespace SoftDemat.Infrastructure.Storage;
 
 public sealed class PayslipDirectory : IPayslipDirectory
 {
-    private readonly PayslipStorageOptions _options;
+    private readonly PayslipStorageLocation _location;
+    private readonly PayslipUploadStore _uploads;
 
-    public PayslipDirectory(IOptions<PayslipStorageOptions> options)
+    public PayslipDirectory(PayslipStorageLocation location, PayslipUploadStore uploads)
     {
-        _options = options.Value;
+        _location = location;
+        _uploads = uploads;
     }
 
     public IReadOnlyList<string> ListChildDirectories(string? relativeFolder)
@@ -47,23 +46,23 @@ public sealed class PayslipDirectory : IPayslipDirectory
 
     private string Resolve(string? relativeFolder)
     {
-        if (string.IsNullOrWhiteSpace(_options.RootPath))
-            throw new DomainException("La racine des bulletins n'est pas configurée.");
-
-        var root = Path.GetFullPath(_options.RootPath);
-        var combined = Path.GetFullPath(Path.Combine(root, relativeFolder?.Trim().TrimStart('\\', '/') ?? string.Empty));
+        _uploads.PurgeExpired();
+        var relative = relativeFolder?.Trim().TrimStart('\\', '/') ?? string.Empty;
+        var combined = Path.GetFullPath(Path.Combine(_location.Root, relative));
         EnsureInsideRoot(combined);
         if (!Directory.Exists(combined))
-            throw new DomainException("Dossier introuvable.");
+            throw new DomainException("Le dossier téléversé est introuvable ou a expiré.");
 
         return combined;
     }
 
     private void EnsureInsideRoot(string fullPath)
     {
-        var root = Path.GetFullPath(_options.RootPath);
+        var root = Path.GetFullPath(_location.Root).TrimEnd(Path.DirectorySeparatorChar);
+        var prefix = root + Path.DirectorySeparatorChar;
         var comparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
-        if (!fullPath.StartsWith(root, comparison))
+        var inside = fullPath.Equals(root, comparison) || fullPath.StartsWith(prefix, comparison);
+        if (!inside)
             throw new DomainException("Dossier hors de la racine autorisée.");
     }
 }

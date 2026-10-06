@@ -20,15 +20,25 @@ public sealed class PayslipFileService : IPayslipFileService
         _dispatches = dispatches;
     }
 
-    public Task<PayslipFolderResponse> ListFoldersAsync(string? relativeFolder, CancellationToken cancellationToken = default)
+    public Task<PayslipFolderResponse> ListFoldersAsync(string? relativeFolder, int userId, CancellationToken cancellationToken = default)
     {
-        var relative = relativeFolder?.Trim() ?? string.Empty;
-        var children = _directory.ListChildDirectories(relative);
-        return Task.FromResult(new PayslipFolderResponse(relative, children));
+        if (string.IsNullOrWhiteSpace(relativeFolder))
+            return Task.FromResult(new PayslipFolderResponse(string.Empty, []));
+
+        PayslipUploadPolicy.EnsureOwned(relativeFolder, userId);
+        var children = _directory.ListChildDirectories(relativeFolder);
+        return Task.FromResult(new PayslipFolderResponse(relativeFolder, children));
     }
 
-    public async Task<PaginatedResult<PayslipFileResponse>> ListAsync(PayslipFileQuery query, CancellationToken cancellationToken = default)
+    public async Task<PaginatedResult<PayslipFileResponse>> ListAsync(
+        PayslipFileQuery query,
+        int userId,
+        CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(query.RelativeFolder))
+            return Empty(query);
+
+        PayslipUploadPolicy.EnsureOwned(query.RelativeFolder, userId);
         var parsed = _directory.ListPdfFileNames(query.RelativeFolder)
             .Select(name => PayslipFileNameParser.TryParse(name, out var parsedFile) ? parsedFile : (ParsedPayslipFile?)null)
             .Where(file => file is not null)

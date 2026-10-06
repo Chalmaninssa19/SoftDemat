@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SoftDemat.Api.Security;
 using SoftDemat.Application.DTOs;
 using SoftDemat.Application.Services.Interfaces;
 
@@ -26,5 +27,9 @@ public sealed class DispatchesController : ControllerBase
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<DispatchResultResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> Create([FromBody] DispatchRequest request, CancellationToken cancellationToken)
-        => Ok(ApiResponse<DispatchResultResponse>.Ok(await _service.SendAsync(request, cancellationToken)));
+        => Ok(ApiResponse<DispatchResultResponse>.Ok(await _service.SendAsync(
+            request,
+            User.GetUserId(),
+            LocalRequest.IsLoopback(HttpContext),
+            cancellationToken)));
 }
