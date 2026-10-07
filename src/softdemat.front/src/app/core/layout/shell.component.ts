@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
@@ -18,6 +18,7 @@ export class ShellComponent {
   readonly session = this.auth.session;
   readonly isAdmin = computed(() => this.session()?.role === 'Administrateur');
   readonly menuOpen = signal(false);
+  readonly logoutConfirmationOpen = signal(false);
   private readonly url = toSignal(
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
@@ -31,6 +32,24 @@ export class ShellComponent {
 
   logout(): void {
     this.auth.logout();
+  }
+
+  openLogoutConfirmation(): void {
+    this.logoutConfirmationOpen.set(true);
+  }
+
+  closeLogoutConfirmation(): void {
+    this.logoutConfirmationOpen.set(false);
+  }
+
+  confirmLogout(): void {
+    this.logoutConfirmationOpen.set(false);
+    this.logout();
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.closeLogoutConfirmation();
   }
 
   toggleMenu(): void {
