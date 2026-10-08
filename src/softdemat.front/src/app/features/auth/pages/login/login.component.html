@@ -62,7 +62,7 @@
         </svg>
         <input id="username" class="login-field w-full rounded-lg py-2 pr-3 pl-10 outline-none" formControlName="username" autocomplete="username" placeholder="Identifiant" />
       </div>
-      <app-field-error [message]="fieldError('username')" />
+      <app-field-error [message]="fieldError('username')" colorClass="text-red-500" />
       <label class="mt-4 block text-sm font-medium" for="password">Mot de passe</label>
       <div class="relative mt-1">
         <svg class="absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -84,7 +84,7 @@
           }
         </button>
       </div>
-      <app-field-error [message]="fieldError('password')" />
+      <app-field-error [message]="fieldError('password')" colorClass="text-red-500" />
       @if (errorMessage()) {
         <p class="mt-4 text-sm">{{ errorMessage() }}</p>
       }

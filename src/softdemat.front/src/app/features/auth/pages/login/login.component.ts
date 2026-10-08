@@ -18,6 +18,7 @@ export class LoginComponent {
   private readonly formBuilder = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   readonly submitting = signal(false);
+  readonly submitted = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly showPassword = signal(false);
   readonly form = this.formBuilder.nonNullable.group({
@@ -26,6 +27,7 @@ export class LoginComponent {
   });
 
   submit(): void {
+    this.submitted.set(true);
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -51,7 +53,7 @@ export class LoginComponent {
 
   fieldError(name: 'username' | 'password'): string | null {
     const control = this.form.controls[name];
-    if (control.touched && control.invalid) {
+    if (this.submitted() && control.invalid) {
       return 'Veuillez remplir les champs.';
     }
     return null;
