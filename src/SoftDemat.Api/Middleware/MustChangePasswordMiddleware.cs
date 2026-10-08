@@ -28,6 +28,7 @@ public sealed class MustChangePasswordMiddleware
 
     private static bool IsAllowed(PathString path)
         => path.StartsWithSegments("/api/auth/password")
+            || path.StartsWithSegments("/api/auth/password-resets")
             || path.StartsWithSegments("/api/auth/logout")
             || path.StartsWithSegments("/api/auth/session")
             || path.StartsWithSegments("/api/auth/refresh");

@@ -1,14 +1,14 @@
 import { DestroyRef, ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ThemeToggleComponent } from '../../../../core/layout/theme-toggle.component';
 import { AuthService } from '../../../../core/services/auth.service';
 import { FieldErrorComponent } from '../../../../shared/components/field-error/field-error.component';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, FieldErrorComponent, ThemeToggleComponent],
+  imports: [ReactiveFormsModule, RouterLink, FieldErrorComponent, ThemeToggleComponent],
   templateUrl: './login.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -11,6 +11,7 @@ public sealed class SdtDbContext : DbContext
     }
 
     public DbSet<UserAccount> Users => Set<UserAccount>();
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<PayslipDispatch> Dispatches => Set<PayslipDispatch>();
     public DbSet<MailTemplate> MailTemplates => Set<MailTemplate>();
     public DbSet<GeneralParameter> GeneralParameters => Set<GeneralParameter>();
@@ -23,6 +24,7 @@ public sealed class SdtDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfiguration(new UserAccountConfiguration());
+        modelBuilder.ApplyConfiguration(new PasswordResetTokenConfiguration());
         modelBuilder.ApplyConfiguration(new PayslipDispatchConfiguration());
         modelBuilder.ApplyConfiguration(new MailTemplateConfiguration());
         modelBuilder.ApplyConfiguration(new GeneralParameterConfiguration());

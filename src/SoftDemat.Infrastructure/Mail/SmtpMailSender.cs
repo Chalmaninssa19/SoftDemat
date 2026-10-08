@@ -44,9 +44,12 @@ public sealed class SmtpMailSender : IMailSender
 
         message.Subject = mail.Subject;
         var builder = new BodyBuilder { HtmlBody = mail.HtmlBody };
-        var attachment = await builder.Attachments.AddAsync(mail.AttachmentPath, cancellationToken);
-        if (attachment.ContentDisposition is not null)
-            attachment.ContentDisposition.FileName = mail.AttachmentName;
+        if (!string.IsNullOrWhiteSpace(mail.AttachmentPath))
+        {
+            var attachment = await builder.Attachments.AddAsync(mail.AttachmentPath, cancellationToken);
+            if (attachment.ContentDisposition is not null)
+                attachment.ContentDisposition.FileName = mail.AttachmentName;
+        }
 
         message.Body = builder.ToMessageBody();
         return message;

@@ -1,0 +1,3 @@
+IF OBJECT_ID(N'dbo.G_USERS', N'U') IS NOT NULL
+   AND COL_LENGTH(N'dbo.G_USERS', N'Email') IS NULL
+    ALTER TABLE dbo.G_USERS ADD Email nvarchar(254) NULL;

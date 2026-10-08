@@ -6,7 +6,9 @@ public interface IUserRepository
 {
     Task<UserAccount?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
     Task<UserAccount?> GetByUsernameAsync(string username, CancellationToken cancellationToken = default);
+    Task<UserAccount?> GetUniqueByEmailAsync(string email, CancellationToken cancellationToken = default);
     Task<bool> UsernameExistsAsync(string username, int? exceptId, CancellationToken cancellationToken = default);
+    Task<bool> EmailExistsAsync(string email, int? exceptId, CancellationToken cancellationToken = default);
     Task<(IReadOnlyList<UserAccount> Items, int TotalCount)> SearchAsync(
         string? search,
         string? sortBy,

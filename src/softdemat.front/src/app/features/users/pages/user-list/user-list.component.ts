@@ -1,6 +1,7 @@
 import { DestroyRef, ChangeDetectionStrategy, Component, HostListener, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { HttpErrorResponse } from '@angular/common/http';
 import { UsersApiService, UserAccount, UserPayload } from '../../services/users-api.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { FieldErrorComponent } from '../../../../shared/components/field-error/field-error.component';
@@ -25,6 +26,7 @@ export class UserListComponent {
   readonly form = inject(FormBuilder).nonNullable.group({
     name: ['', Validators.required],
     username: ['', Validators.required],
+    email: ['', [Validators.email, Validators.maxLength(254)]],
     pc: ['', Validators.required],
     roleId: ['0', Validators.required],
     password: [''],
@@ -44,7 +46,7 @@ export class UserListComponent {
 
   openCreate(): void {
     this.editingId.set(null);
-    this.form.reset({ name: '', username: '', pc: '', roleId: '0', password: '', passwordConfirmation: '' });
+    this.form.reset({ name: '', username: '', email: '', pc: '', roleId: '0', password: '', passwordConfirmation: '' });
     this.setPasswordRequired(true);
     this.modalOpen.set(true);
   }
@@ -54,6 +56,7 @@ export class UserListComponent {
     this.form.reset({
       name: user.name,
       username: user.username,
+      email: user.email ?? '',
       pc: user.pc,
       roleId: user.role === 'Administrateur' ? '1' : '0',
       password: '',
@@ -82,7 +85,10 @@ export class UserListComponent {
     const request = editing ? this.api.update(editing, payload) : this.api.create(payload);
     request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (user) => this.onSaved(user, editing),
-      error: () => this.submitting.set(false),
+      error: (error: unknown) => {
+        this.submitting.set(false);
+        this.notifications.error(this.messageOf(error));
+      },
     });
   }
 
@@ -106,13 +112,16 @@ export class UserListComponent {
     });
   }
 
-  fieldError(name: 'name' | 'username' | 'pc' | 'password' | 'passwordConfirmation'): string | null {
+  fieldError(name: 'name' | 'username' | 'email' | 'pc' | 'password' | 'passwordConfirmation'): string | null {
     const control = this.form.controls[name];
     if (!control.touched) {
       return null;
     }
     if (control.hasError('required')) {
       return 'Ce champ est obligatoire.';
+    }
+    if (name === 'email' && (control.hasError('email') || control.hasError('maxlength'))) {
+      return "L'adresse e-mail n'est pas valide.";
     }
     if (name === 'passwordConfirmation' && this.passwordsDiffer()) {
       return 'Vérifiez votre mot de passe.';
@@ -158,6 +167,13 @@ export class UserListComponent {
   private payload(): UserPayload {
     const raw = this.form.getRawValue();
     return { ...raw, roleId: Number(raw.roleId) };
+  }
+
+  private messageOf(error: unknown): string {
+    if (error instanceof HttpErrorResponse && typeof error.error?.message === 'string') {
+      return error.error.message;
+    }
+    return 'Enregistrement impossible.';
   }
 
   private passwordsDiffer(): boolean {

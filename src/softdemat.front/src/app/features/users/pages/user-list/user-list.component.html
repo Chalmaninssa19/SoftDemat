@@ -15,6 +15,7 @@
         <tr class="border-b border-line">
           <th class="px-3 py-2 font-medium">Nom</th>
           <th class="px-3 py-2 font-medium">Identifiant</th>
+          <th class="px-3 py-2 font-medium">E-mail</th>
           <th class="px-3 py-2 font-medium">Rôle</th>
           <th class="px-3 py-2 font-medium">Poste</th>
           <th class="px-3 py-2 font-medium">Actions</th>
@@ -25,6 +26,7 @@
           <tr class="border-b border-line">
             <td class="px-3 py-2">{{ user.name }}</td>
             <td class="px-3 py-2">{{ user.username }}</td>
+            <td class="px-3 py-2">{{ user.email || '—' }}</td>
             <td class="px-3 py-2">{{ user.role }}</td>
             <td class="px-3 py-2">{{ user.pc }}</td>
             <td class="space-x-2 px-3 py-2">
@@ -64,6 +66,11 @@
         <label class="ui-label" for="user-username">Identifiant</label>
         <input id="user-username" class="ui-field" formControlName="username" autocomplete="off" />
         <app-field-error [message]="fieldError('username')" />
+      </div>
+      <div>
+        <label class="ui-label" for="user-email">Adresse e-mail (facultative)</label>
+        <input id="user-email" class="ui-field" type="email" formControlName="email" autocomplete="email" />
+        <app-field-error [message]="fieldError('email')" />
       </div>
       <div>
         <label class="ui-label" for="user-pc">Poste</label>

@@ -1,6 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <EmbeddedResource Include="Migrations\Scripts\*.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\SoftDemat.Application\SoftDemat.Application.csproj" />
     <ProjectReference Include="..\SoftDemat.Domain\SoftDemat.Domain.csproj" />
   </ItemGroup>

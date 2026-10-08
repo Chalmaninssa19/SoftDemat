@@ -81,6 +81,22 @@ export class AuthService {
       .pipe(map((response) => response.message || response.data));
   }
 
+  requestPasswordReset(email: string): Observable<string> {
+    return this.raw
+      .post<ApiResponse<string>>(`${environment.apiUrl}/auth/password-resets`, { email })
+      .pipe(map((response) => response.message || response.data));
+  }
+
+  resetPassword(token: string, newPassword: string, confirmation: string): Observable<string> {
+    return this.raw
+      .put<ApiResponse<string>>(`${environment.apiUrl}/auth/password-resets`, {
+        token,
+        newPassword,
+        confirmation,
+      })
+      .pipe(map((response) => response.message || response.data));
+  }
+
   messageOf(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
       const body = error.error as ApiResponse<unknown> | undefined;

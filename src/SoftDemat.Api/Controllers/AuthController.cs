@@ -14,10 +14,12 @@ namespace SoftDemat.Api.Controllers;
 public sealed class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly IPasswordResetService _passwordResetService;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, IPasswordResetService passwordResetService)
     {
         _authService = authService;
+        _passwordResetService = passwordResetService;
     }
 
     [AllowAnonymous]
@@ -26,6 +28,27 @@ public sealed class AuthController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<LoginResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
         => Ok(ApiResponse<LoginResponse>.Ok(await _authService.LoginAsync(request, cancellationToken)));
+
+    [AllowAnonymous]
+    [EnableRateLimiting("password-reset")]
+    [HttpPost("password-resets")]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> RequestPasswordReset(
+        [FromBody] PasswordResetRequest request,
+        CancellationToken cancellationToken)
+        => Ok(ApiResponse<string>.Ok(await _passwordResetService.RequestAsync(request, cancellationToken)));
+
+    [AllowAnonymous]
+    [EnableRateLimiting("password-reset")]
+    [HttpPut("password-resets")]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ResetPassword(
+        [FromBody] ResetPasswordRequest request,
+        CancellationToken cancellationToken)
+    {
+        await _passwordResetService.ResetAsync(request, cancellationToken);
+        return Ok(ApiResponse<string>.Ok("Votre mot de passe a été modifié."));
+    }
 
     [AllowAnonymous]
     [HttpPost("refresh")]

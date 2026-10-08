@@ -21,10 +21,29 @@ public sealed class UserRepository : IUserRepository
     public Task<UserAccount?> GetByUsernameAsync(string username, CancellationToken cancellationToken = default)
         => _context.Users.FirstOrDefaultAsync(user => user.Username == username, cancellationToken);
 
+    public async Task<UserAccount?> GetUniqueByEmailAsync(string email, CancellationToken cancellationToken = default)
+    {
+        var normalized = email.Trim().ToLowerInvariant();
+        var matches = await _context.Users
+            .AsNoTracking()
+            .Where(user => user.Email == normalized)
+            .Take(2)
+            .ToListAsync(cancellationToken);
+        return matches.Count == 1 ? matches[0] : null;
+    }
+
     public Task<bool> UsernameExistsAsync(string username, int? exceptId, CancellationToken cancellationToken = default)
         => _context.Users.AnyAsync(
             user => user.Username == username && (exceptId == null || user.Id != exceptId),
             cancellationToken);
+
+    public Task<bool> EmailExistsAsync(string email, int? exceptId, CancellationToken cancellationToken = default)
+    {
+        var normalized = email.Trim().ToLowerInvariant();
+        return _context.Users.AnyAsync(
+            user => user.Email == normalized && (exceptId == null || user.Id != exceptId),
+            cancellationToken);
+    }
 
     public async Task<(IReadOnlyList<UserAccount> Items, int TotalCount)> SearchAsync(
         string? search,
@@ -38,7 +57,10 @@ public sealed class UserRepository : IUserRepository
         if (!string.IsNullOrWhiteSpace(search))
         {
             var term = search.Trim();
-            query = query.Where(user => user.Name.Contains(term) || user.Username.Contains(term) || user.Pc.Contains(term));
+            query = query.Where(user => user.Name.Contains(term)
+                || user.Username.Contains(term)
+                || user.Pc.Contains(term)
+                || (user.Email != null && user.Email.Contains(term)));
         }
 
         query = sortBy?.ToLowerInvariant() switch

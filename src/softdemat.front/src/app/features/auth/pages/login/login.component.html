@@ -85,6 +85,9 @@
         </button>
       </div>
       <app-field-error [message]="fieldError('password')" colorClass="text-red-500" />
+      <div class="mt-3 text-right">
+        <a class="text-sm text-accent underline-offset-4 hover:underline" routerLink="/auth/mot-de-passe-oublie">Mot de passe oublié ?</a>
+      </div>
       @if (errorMessage()) {
         <p class="mt-4 text-sm">{{ errorMessage() }}</p>
       }

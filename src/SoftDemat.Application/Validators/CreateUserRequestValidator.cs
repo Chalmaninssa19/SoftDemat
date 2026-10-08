@@ -15,5 +15,10 @@ public sealed class CreateUserRequestValidator : AbstractValidator<CreateUserReq
         RuleFor(request => request.PasswordConfirmation)
             .Equal(request => request.Password)
             .WithMessage("Vérifiez votre mot de passe.");
+        RuleFor(request => request.Email)
+            .EmailAddress().When(request => !string.IsNullOrWhiteSpace(request.Email))
+            .WithMessage("L'adresse e-mail n'est pas valide.");
+        RuleFor(request => request.Email)
+            .MaximumLength(254).WithMessage("L'adresse e-mail est trop longue.");
     }
 }

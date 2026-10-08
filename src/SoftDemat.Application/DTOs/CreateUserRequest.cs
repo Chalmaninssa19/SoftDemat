@@ -6,4 +6,5 @@ public sealed record CreateUserRequest(
     string Pc,
     int RoleId,
     string Password,
-    string PasswordConfirmation);
+    string PasswordConfirmation,
+    string? Email = null);

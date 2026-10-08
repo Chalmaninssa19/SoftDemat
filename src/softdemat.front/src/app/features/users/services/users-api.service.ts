@@ -8,6 +8,7 @@ export interface UserAccount {
   id: number;
   name: string;
   username: string;
+  email: string | null;
   role: string;
   pc: string;
 }
@@ -15,6 +16,7 @@ export interface UserAccount {
 export interface UserPayload {
   name: string;
   username: string;
+  email: string;
   pc: string;
   roleId: number;
   password?: string;

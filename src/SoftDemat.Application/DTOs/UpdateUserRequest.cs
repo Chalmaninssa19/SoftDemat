@@ -6,4 +6,5 @@ public sealed record UpdateUserRequest(
     string Pc,
     int RoleId,
     string? Password,
-    string? PasswordConfirmation);
+    string? PasswordConfirmation,
+    string? Email = null);

@@ -14,6 +14,7 @@ using SoftDemat.Application.DTOs;
 using SoftDemat.Domain.Rules;
 using SoftDemat.Infrastructure;
 using SoftDemat.Infrastructure.Context;
+using SoftDemat.Infrastructure.Migrations;
 using SoftDemat.Infrastructure.Options;
 using SoftDemat.Infrastructure.Persistence;
 
@@ -85,6 +86,12 @@ builder.Services.AddRateLimiter(options =>
         limiter.PermitLimit = 20;
         limiter.QueueLimit = 0;
     });
+    options.AddFixedWindowLimiter("password-reset", limiter =>
+    {
+        limiter.Window = TimeSpan.FromMinutes(15);
+        limiter.PermitLimit = 5;
+        limiter.QueueLimit = 0;
+    });
 });
 
 var app = builder.Build();
@@ -93,6 +100,7 @@ await using (var scope = app.Services.CreateAsyncScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<SdtDbContext>();
     await SdtSchemaInitializer.EnsureAuthTablesAsync(context, app.Logger);
+    await scope.ServiceProvider.GetRequiredService<SqlScriptMigrator>().MigrateAsync();
 }
 
 if (app.Environment.IsDevelopment())

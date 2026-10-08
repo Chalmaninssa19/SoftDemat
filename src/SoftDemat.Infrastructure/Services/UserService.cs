@@ -54,10 +54,15 @@ public sealed class UserService : IUserService
         if (await _users.UsernameExistsAsync(username, null, cancellationToken))
             throw new ConflictException("Cet identifiant existe déjà.");
 
+        var email = NormalizeEmail(request.Email);
+        if (email is not null && await _users.EmailExistsAsync(email, null, cancellationToken))
+            throw new ConflictException("Cette adresse e-mail est déjà utilisée.");
+
         var user = new UserAccount
         {
             Name = request.Name.Trim(),
             Username = username,
+            Email = email,
             Pc = request.Pc.Trim(),
             Role = (UserRole)request.RoleId,
             Password = _hasher.Hash(request.Password)
@@ -75,8 +80,13 @@ public sealed class UserService : IUserService
         if (await _users.UsernameExistsAsync(username, id, cancellationToken))
             throw new ConflictException("Cet identifiant existe déjà.");
 
+        var email = NormalizeEmail(request.Email);
+        if (email is not null && await _users.EmailExistsAsync(email, id, cancellationToken))
+            throw new ConflictException("Cette adresse e-mail est déjà utilisée.");
+
         user.Name = request.Name.Trim();
         user.Username = username;
+        user.Email = email;
         user.Pc = request.Pc.Trim();
         user.Role = (UserRole)request.RoleId;
         if (!string.IsNullOrEmpty(request.Password))
@@ -124,7 +134,10 @@ public sealed class UserService : IUserService
     }
 
     private static UserResponse ToResponse(UserAccount user)
-        => new(user.Id, user.Name, user.Username, user.Role.ToString(), user.Pc);
+        => new(user.Id, user.Name, user.Username, user.Role.ToString(), user.Pc, user.Email);
+
+    private static string? NormalizeEmail(string? email)
+        => string.IsNullOrWhiteSpace(email) ? null : email.Trim().ToLowerInvariant();
 
     private static string CreateTemporaryPassword()
     {

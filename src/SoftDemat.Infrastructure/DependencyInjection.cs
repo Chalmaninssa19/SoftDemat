@@ -5,6 +5,7 @@ using SoftDemat.Application.Services.Interfaces;
 using SoftDemat.Domain.Interfaces;
 using SoftDemat.Infrastructure.Context;
 using SoftDemat.Infrastructure.Mail;
+using SoftDemat.Infrastructure.Migrations;
 using SoftDemat.Infrastructure.Options;
 using SoftDemat.Infrastructure.Repositories;
 using SoftDemat.Infrastructure.Security;
@@ -25,6 +26,7 @@ public static class DependencyInjection
         services.AddDbContext<SageDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("Sage")));
 
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
         services.AddScoped<IAuthSessionRepository, AuthSessionRepository>();
         services.AddScoped<IUserSecurityRepository, UserSecurityRepository>();
         services.AddScoped<IMailTemplateRepository, MailTemplateRepository>();
@@ -36,6 +38,7 @@ public static class DependencyInjection
         services.AddScoped<IEstablishmentRepository, EstablishmentRepository>();
         services.AddScoped<IDispatchRepository, DispatchRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<SqlScriptMigrator>();
         services.AddScoped<AuthStores>();
         services.AddScoped<AuthCrypto>();
         services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
@@ -51,6 +54,9 @@ public static class DependencyInjection
         services.AddScoped<IPayslipMailer, PayslipMailer>();
         services.AddSingleton<ISageConnectionTester, SageConnectionTester>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<AuthResetStores>();
+        services.AddScoped<IPasswordResetService, PasswordResetService>();
+        services.AddScoped<IPasswordResetNotifier, PasswordResetNotifier>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IGeneralParameterService, GeneralParameterService>();
         services.AddScoped<ISmtpSettingService, SmtpSettingService>();
