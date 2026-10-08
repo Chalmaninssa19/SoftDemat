@@ -32,7 +32,6 @@
       }
       <a routerLink="/profil" routerLinkActive="bg-panel !text-content" class="rounded-lg px-3 py-2 text-sm text-muted hover:bg-panel hover:text-content" (click)="closeMenu()">Profil</a>
     </nav>
-    <button type="button" class="m-3 rounded-lg px-3 py-2 text-left text-sm text-muted hover:bg-panel hover:text-content" (click)="logout()">Se déconnecter</button>
   </aside>
   <div class="flex min-w-0 flex-1 flex-col">
     <header class="flex h-14 items-center justify-between gap-3 border-b border-line px-4">
@@ -42,13 +41,13 @@
       </div>
       <div class="flex items-center gap-3">
         <app-theme-toggle />
-        <a routerLink="/profil" class="flex items-center gap-2">
+        <button type="button" class="flex items-center gap-2 rounded-lg text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" aria-label="Ouvrir la confirmation de déconnexion" (click)="openLogoutConfirmation()">
           <span class="text-right text-xs leading-4">
             <span class="block font-medium">{{ session()?.name }}</span>
             <span class="block text-muted">{{ session()?.sageDatabaseName || 'Base Sage non configurée' }}</span>
           </span>
           <span class="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-xs font-semibold text-[#1a1403]">{{ initials() }}</span>
-        </a>
+        </button>
       </div>
     </header>
     <main class="min-w-0 flex-1 p-4 md:p-6">
@@ -56,3 +55,36 @@
     </main>
   </div>
 </div>
+
+@if (logoutConfirmationOpen()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" (click)="closeLogoutConfirmation()">
+    <section
+      class="ui-card w-full max-w-sm space-y-5 p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="logout-dialog-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="flex items-start gap-3">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-500" aria-hidden="true">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 17l5-5-5-5m5 5H3m9-9h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5"></path>
+          </svg>
+        </span>
+        <div>
+          <h2 id="logout-dialog-title" class="ui-title">Confirmer la déconnexion</h2>
+          <p class="mt-2 text-sm text-muted">Voulez-vous vraiment vous déconnecter de votre espace ?</p>
+        </div>
+      </div>
+      <div class="flex justify-end gap-3">
+        <button type="button" class="ui-btn-ghost" (click)="closeLogoutConfirmation()">Annuler</button>
+        <button type="button" class="ui-btn inline-flex items-center gap-2" (click)="confirmLogout()">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 17l5-5-5-5m5 5H3m9-9h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5"></path>
+          </svg>
+          Déconnexion
+        </button>
+      </div>
+    </section>
+  </div>
+}
