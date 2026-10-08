@@ -1,3 +1,3 @@
 namespace SoftDemat.Application.DTOs;
 
-public sealed record UpdateMailTemplateRequest(string MailObject, string MailContent);
+public sealed record UpdateMailTemplateRequest(string MailType, string MailObject, string MailContent, string MailCode);

@@ -18,6 +18,7 @@ public sealed class SdtDbContext : DbContext
     public DbSet<AuthSession> AuthSessions => Set<AuthSession>();
     public DbSet<UserSecurity> UserSecurities => Set<UserSecurity>();
     public DbSet<MailSenderSetting> MailSenderSettings => Set<MailSenderSetting>();
+    public DbSet<SmtpSetting> SmtpSettings => Set<SmtpSetting>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -29,5 +30,6 @@ public sealed class SdtDbContext : DbContext
         modelBuilder.ApplyConfiguration(new AuthSessionConfiguration());
         modelBuilder.ApplyConfiguration(new UserSecurityConfiguration());
         modelBuilder.ApplyConfiguration(new MailSenderSettingConfiguration());
+        modelBuilder.ApplyConfiguration(new SmtpSettingConfiguration());
     }
 }

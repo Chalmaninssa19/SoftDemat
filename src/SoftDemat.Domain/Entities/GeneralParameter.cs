@@ -6,4 +6,6 @@ public sealed class GeneralParameter : BaseEntity
 
     public string Cc { get; set; } = string.Empty;
     public string ArchiveFolder { get; set; } = string.Empty;
+    public string? SenderEmail { get; set; }
+    public string? SageFolder { get; set; }
 }

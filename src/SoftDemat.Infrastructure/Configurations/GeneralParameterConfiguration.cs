@@ -12,5 +12,7 @@ public sealed class GeneralParameterConfiguration : IEntityTypeConfiguration<Gen
         builder.HasKey(parameter => parameter.Id);
         builder.Property(parameter => parameter.Cc).HasColumnName("Cc");
         builder.Property(parameter => parameter.ArchiveFolder).HasColumnName("ArchFolder");
+        builder.Property(parameter => parameter.SenderEmail).HasColumnName("ExpMail");
+        builder.Property(parameter => parameter.SageFolder).HasColumnName("SageFolder");
     }
 }

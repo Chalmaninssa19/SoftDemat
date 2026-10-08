@@ -31,7 +31,18 @@ export interface GeneralParameter {
   archiveFolder: string;
   cc: string;
   senderTool: string;
-  senderAddress: string;
+  senderAddress?: string;
+  sageFolder: string;
+  senderEmail: string;
+}
+
+export interface SmtpSetting {
+  host: string;
+  port: number;
+  useSsl: boolean;
+  user: string;
+  hasPassword: boolean;
+  fromAddress: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -62,10 +73,20 @@ export class SettingsApiService {
       .pipe(map((response) => response.data ?? []));
   }
 
-  saveTemplate(id: number, mailObject: string, mailContent: string): Observable<MailTemplate> {
+  saveTemplate(template: MailTemplate): Observable<MailTemplate> {
     return this.http
-      .put<ApiResponse<MailTemplate>>(`${environment.apiUrl}/mail-templates/${id}`, { mailObject, mailContent })
+      .put<ApiResponse<MailTemplate>>(`${environment.apiUrl}/mail-templates/${template.id}`, this.templateBody(template))
       .pipe(map((response) => response.data));
+  }
+
+  createTemplate(template: MailTemplate): Observable<MailTemplate> {
+    return this.http
+      .post<ApiResponse<MailTemplate>>(`${environment.apiUrl}/mail-templates`, this.templateBody(template))
+      .pipe(map((response) => response.data));
+  }
+
+  deleteTemplate(id: number): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/mail-templates/${id}`);
   }
 
   general(): Observable<GeneralParameter> {
@@ -80,7 +101,34 @@ export class SettingsApiService {
         archiveFolder: payload.archiveFolder,
         cc: payload.cc || null,
         senderTool: payload.senderTool,
-        senderAddress: payload.senderAddress || null,
+        sageFolder: payload.sageFolder || null,
+        senderEmail: payload.senderEmail || null,
+      })
+      .pipe(map((response) => response.data));
+  }
+
+  smtp(): Observable<SmtpSetting> {
+    return this.http
+      .get<ApiResponse<SmtpSetting>>(`${environment.apiUrl}/smtp-settings`)
+      .pipe(map((response) => response.data));
+  }
+
+  saveSmtp(payload: {
+    host: string;
+    port: number;
+    useSsl: boolean;
+    user: string;
+    password: string;
+    fromAddress: string;
+  }): Observable<SmtpSetting> {
+    return this.http
+      .put<ApiResponse<SmtpSetting>>(`${environment.apiUrl}/smtp-settings`, {
+        host: payload.host,
+        port: payload.port,
+        useSsl: payload.useSsl,
+        user: payload.user || null,
+        password: payload.password || null,
+        fromAddress: payload.fromAddress,
       })
       .pipe(map((response) => response.data));
   }
@@ -95,5 +143,14 @@ export class SettingsApiService {
     return this.http
       .get<ApiResponse<{ email: string }>>(`${environment.apiUrl}/general-parameters/outlook-sender`)
       .pipe(map((response) => response.data.email));
+  }
+
+  private templateBody(template: MailTemplate) {
+    return {
+      mailType: template.mailType,
+      mailObject: template.mailObject,
+      mailContent: template.mailContent,
+      mailCode: template.mailCode,
+    };
   }
 }

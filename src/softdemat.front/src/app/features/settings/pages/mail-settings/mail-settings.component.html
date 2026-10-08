@@ -3,27 +3,31 @@
     <p class="ui-kicker">Envoi</p>
     <h1 class="ui-title">Archivage et expéditeur</h1>
     <a routerLink="/parametrage/sage" class="text-sm text-accent">Connexion Sage</a>
-    <p class="text-sm text-muted">Le destinataire de chaque bulletin reste l'e-mail Sage du matricule. L'expéditeur est choisi ci-dessous.</p>
+    <p class="text-sm text-muted">Les deux modes envoient le même message : destinataire Sage du matricule, copie, sujet, corps HTML et pièce jointe. Aucun mode ne remplace l'autre en cas d'échec.</p>
     <div>
-      <label class="ui-label" for="tool">Outil d'expéditeur</label>
+      <label class="ui-label" for="tool">Mode d'envoi</label>
       <select id="tool" class="ui-field" formControlName="senderTool">
+        <option value="MailKit">MailKit (SMTP)</option>
         <option value="Outlook">Outlook du poste</option>
-        <option value="Address">Adresse saisie</option>
       </select>
     </div>
     @if (general.controls.senderTool.value === 'Outlook') {
-      <p class="text-xs text-muted">À l'envoi, SoftDemat lit le compte Outlook par défaut du PC où l'application est lancée, c'est-à-dire le poste de la personne qui clique sur Envoyer. Outlook peut demander une confirmation.</p>
+      <p class="text-xs text-muted">Outlook doit être installé sur le PC où SoftDemat est lancé, celui de la personne qui clique sur Envoyer. L'expéditeur est le compte Outlook par défaut. Outlook peut demander une confirmation.</p>
       <button type="button" class="ui-btn-ghost" (click)="detectOutlook()">Lire l'adresse Outlook</button>
       @if (outlookAddress()) {
         <p class="text-sm">Expéditeur détecté : {{ outlookAddress() }}</p>
       }
     } @else {
-      <div>
-        <label class="ui-label" for="sender">Adresse de l'expéditeur</label>
-        <input id="sender" class="ui-field" formControlName="senderAddress" />
-        <p class="mt-1 text-xs text-muted">L'envoi utilise alors le serveur SMTP configuré pour l'API.</p>
-      </div>
+      <p class="text-xs text-muted">MailKit envoie avec le serveur SMTP enregistré ci-dessous. L'expéditeur est l'adresse From de cet enregistrement. Si l'hôte ou l'expéditeur manque, l'envoi échoue.</p>
     }
+    <div>
+      <label class="ui-label" for="sage-folder">Dossier Sage</label>
+      <input id="sage-folder" class="ui-field" formControlName="sageFolder" />
+    </div>
+    <div>
+      <label class="ui-label" for="sender-email">E-mail expéditeur</label>
+      <input id="sender-email" class="ui-field" formControlName="senderEmail" />
+    </div>
     <div>
       <label class="ui-label" for="archive">Dossier d'archive</label>
       <div class="flex gap-2">
@@ -53,7 +57,18 @@
         }
       </select>
     </div>
+    <div class="flex justify-end">
+      <button type="button" class="ui-btn-ghost" (click)="createMail()">Nouveau</button>
+    </div>
     <p class="text-xs text-muted">Balises : MM, AA, PNOM, NOM, MAT. Les retours à la ligne deviennent des sauts HTML.</p>
+    <div>
+      <label class="ui-label" for="mail-type">Type</label>
+      <input id="mail-type" class="ui-field" formControlName="mailType" />
+    </div>
+    <div>
+      <label class="ui-label" for="mail-code">Code</label>
+      <input id="mail-code" class="ui-field" formControlName="mailCode" />
+    </div>
     <div>
       <label class="ui-label" for="object">Objet</label>
       <input id="object" class="ui-field" formControlName="mailObject" />
@@ -62,8 +77,45 @@
       <label class="ui-label" for="content">Contenu</label>
       <textarea id="content" rows="8" class="ui-field" formControlName="mailContent"></textarea>
     </div>
-    <div class="flex justify-end">
+    <div class="flex justify-end gap-3">
+      @if (mail.controls.id.value > 0) {
+        <button type="button" class="ui-btn-ghost" (click)="removeMail()">Supprimer</button>
+      }
       <button type="submit" class="ui-btn">Enregistrer le modèle</button>
+    </div>
+  </form>
+  <form class="ui-card space-y-4 p-6 lg:col-span-2" [formGroup]="smtp" (ngSubmit)="saveSmtp()">
+    <p class="ui-kicker">Envoi</p>
+    <h2 class="ui-title">Serveur SMTP</h2>
+    <p class="text-sm text-muted">Ces valeurs sont lues en base à chaque envoi MailKit. Le mot de passe n'est jamais réaffiché. Laissez-le vide pour conserver celui déjà enregistré.</p>
+    <div class="grid gap-4 md:grid-cols-2">
+      <div>
+        <label class="ui-label" for="smtp-host">Hôte</label>
+        <input id="smtp-host" class="ui-field" formControlName="host" />
+      </div>
+      <div>
+        <label class="ui-label" for="smtp-port">Port</label>
+        <input id="smtp-port" type="number" class="ui-field" formControlName="port" />
+      </div>
+      <div>
+        <label class="ui-label" for="smtp-user">Utilisateur</label>
+        <input id="smtp-user" class="ui-field" formControlName="user" />
+      </div>
+      <div>
+        <label class="ui-label" for="smtp-password">Mot de passe</label>
+        <input id="smtp-password" type="password" class="ui-field" formControlName="password" autocomplete="new-password" />
+      </div>
+      <div>
+        <label class="ui-label" for="smtp-from">Expéditeur</label>
+        <input id="smtp-from" class="ui-field" formControlName="fromAddress" />
+      </div>
+      <label class="flex items-center gap-2 text-sm">
+        <input type="checkbox" formControlName="useSsl" />
+        Connexion chiffrée (STARTTLS)
+      </label>
+    </div>
+    <div class="flex justify-end">
+      <button type="submit" class="ui-btn">Enregistrer le SMTP</button>
     </div>
   </form>
 </section>
