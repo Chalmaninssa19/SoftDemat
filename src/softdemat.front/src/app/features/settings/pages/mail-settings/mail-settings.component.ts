@@ -20,18 +20,47 @@ export class MailSettingsComponent {
   readonly browsing = signal(false);
   readonly general = inject(FormBuilder).nonNullable.group({
     archiveFolder: ['', Validators.required],
+    sageFolder: [''],
+    senderEmail: [''],
     cc: [''],
     senderTool: ['Outlook', Validators.required],
-    senderAddress: [''],
+  });
+  readonly smtp = inject(FormBuilder).nonNullable.group({
+    host: ['', Validators.required],
+    port: [587, [Validators.required, Validators.min(1), Validators.max(65535)]],
+    useSsl: [true],
+    user: [''],
+    password: [''],
+    fromAddress: ['', [Validators.required, Validators.email]],
   });
   readonly mail = inject(FormBuilder).nonNullable.group({
-    id: [0, Validators.min(1)],
+    id: [0],
+    mailType: ['', Validators.required],
+    mailCode: ['', Validators.required],
     mailObject: ['', Validators.required],
     mailContent: ['', Validators.required],
   });
 
   constructor() {
-    this.api.general().pipe(takeUntilDestroyed()).subscribe((parameter) => this.general.patchValue(parameter));
+    this.api.general().pipe(takeUntilDestroyed()).subscribe((parameter) => {
+      this.general.patchValue({
+        archiveFolder: parameter.archiveFolder,
+        sageFolder: parameter.sageFolder ?? '',
+        senderEmail: parameter.senderEmail ?? '',
+        cc: parameter.cc,
+        senderTool: parameter.senderTool,
+      });
+    });
+    this.api.smtp().pipe(takeUntilDestroyed()).subscribe((setting) => {
+      this.smtp.patchValue({
+        host: setting.host,
+        port: setting.port,
+        useSsl: setting.useSsl,
+        user: setting.user,
+        password: '',
+        fromAddress: setting.fromAddress,
+      });
+    });
     this.api.templates().pipe(takeUntilDestroyed()).subscribe((templates) => {
       this.templates.set(templates);
       if (templates[0]) {
@@ -47,6 +76,8 @@ export class MailSettingsComponent {
     }
     this.mail.patchValue({
       id: template.id,
+      mailType: template.mailType,
+      mailCode: template.mailCode,
       mailObject: template.mailObject,
       mailContent: template.mailContent,
     });
@@ -58,12 +89,19 @@ export class MailSettingsComponent {
       return;
     }
     const value = this.general.getRawValue();
-    if (value.senderTool === 'Address' && !value.senderAddress.trim()) {
-      this.notifications.error('Indiquez l’adresse de l’expéditeur.');
-      return;
-    }
     this.api.saveGeneral(value).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.notifications.success('Paramètres d’envoi enregistrés.');
+    });
+  }
+
+  saveSmtp(): void {
+    if (this.smtp.invalid) {
+      this.smtp.markAllAsTouched();
+      return;
+    }
+    this.api.saveSmtp(this.smtp.getRawValue()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.smtp.controls.password.reset('');
+      this.notifications.success('Serveur SMTP enregistré.');
     });
   }
 
@@ -93,11 +131,34 @@ export class MailSettingsComponent {
       return;
     }
     const value = this.mail.getRawValue();
-    this.api.saveTemplate(value.id, value.mailObject, value.mailContent)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((saved) => {
-        this.templates.update((items) => items.map((item) => (item.id === saved.id ? saved : item)));
-        this.notifications.success('Modèle de mail enregistré.');
-      });
+    const request = value.id > 0 ? this.api.saveTemplate(value) : this.api.createTemplate(value);
+    request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((saved) => {
+      this.templates.update((items) => value.id > 0
+        ? items.map((item) => (item.id === saved.id ? saved : item))
+        : [...items, saved]);
+      this.select(saved.id);
+      this.notifications.success('Modèle de mail enregistré.');
+    });
+  }
+
+  createMail(): void {
+    this.mail.reset({ id: 0, mailType: '', mailCode: '', mailObject: '', mailContent: '' });
+  }
+
+  removeMail(): void {
+    const id = this.mail.controls.id.value;
+    if (id < 1) {
+      return;
+    }
+    this.api.deleteTemplate(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      const remaining = this.templates().filter((item) => item.id !== id);
+      this.templates.set(remaining);
+      if (remaining[0]) {
+        this.select(remaining[0].id);
+      } else {
+        this.createMail();
+      }
+      this.notifications.success('Modèle de mail supprimé.');
+    });
   }
 }

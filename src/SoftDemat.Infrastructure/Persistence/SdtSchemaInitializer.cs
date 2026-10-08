@@ -25,6 +25,7 @@ public static class SdtSchemaInitializer
             await context.Database.ExecuteSqlRawAsync(CreateAuthSessionSql, cancellationToken);
             await context.Database.ExecuteSqlRawAsync(CreateUserSecuritySql, cancellationToken);
             await context.Database.ExecuteSqlRawAsync(CreateMailSenderSql, cancellationToken);
+            await context.Database.ExecuteSqlRawAsync(CreateSmtpSql, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -70,5 +71,22 @@ public static class SdtSchemaInitializer
         END
         IF NOT EXISTS (SELECT 1 FROM dbo.G_MAIL_SENDER WHERE Id = 1)
             INSERT INTO dbo.G_MAIL_SENDER (Id, SenderTool, SenderAddress) VALUES (1, 'Outlook', '');
+        UPDATE dbo.G_MAIL_SENDER SET SenderTool = 'MailKit' WHERE SenderTool = 'Address';
+        """;
+
+    private const string CreateSmtpSql =
+        """
+        IF OBJECT_ID(N'dbo.G_SMTP', N'U') IS NULL
+        BEGIN
+            CREATE TABLE dbo.G_SMTP (
+                Id int NOT NULL CONSTRAINT PK_G_SMTP PRIMARY KEY,
+                Host nvarchar(200) NOT NULL,
+                Port int NOT NULL,
+                UseSsl bit NOT NULL,
+                UserName nvarchar(200) NOT NULL,
+                Password nvarchar(500) NOT NULL,
+                FromAddress nvarchar(200) NOT NULL
+            );
+        END
         """;
 }

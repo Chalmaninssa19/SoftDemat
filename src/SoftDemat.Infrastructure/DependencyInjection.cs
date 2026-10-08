@@ -20,7 +20,6 @@ public static class DependencyInjection
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.Configure<LegacyEncryptionOptions>(configuration.GetSection(LegacyEncryptionOptions.SectionName));
         services.Configure<PayslipStorageOptions>(configuration.GetSection(PayslipStorageOptions.SectionName));
-        services.Configure<SmtpOptions>(configuration.GetSection(SmtpOptions.SectionName));
 
         services.AddDbContext<SdtDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("Sdt")));
         services.AddDbContext<SageDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("Sage")));
@@ -31,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped<IMailTemplateRepository, MailTemplateRepository>();
         services.AddScoped<IGeneralParameterRepository, GeneralParameterRepository>();
         services.AddScoped<IMailSenderSettingRepository, MailSenderSettingRepository>();
+        services.AddScoped<ISmtpSettingRepository, SmtpSettingRepository>();
         services.AddScoped<ISageConnectionRepository, SageConnectionRepository>();
         services.AddScoped<IEmployeeRepository, EmployeeRepository>();
         services.AddScoped<IEstablishmentRepository, EstablishmentRepository>();
@@ -45,7 +45,7 @@ public static class DependencyInjection
         services.AddSingleton<PayslipUploadStore>();
         services.AddSingleton<IPayslipDirectory, PayslipDirectory>();
         services.AddSingleton<IPayslipArchiver, PayslipArchiver>();
-        services.AddSingleton<IMailSender, SmtpMailSender>();
+        services.AddScoped<IMailSender, SmtpMailSender>();
         services.AddSingleton<ILocalMailbox, OutlookMailbox>();
         services.AddSingleton<IArchiveFolderPicker, WindowsArchiveFolderPicker>();
         services.AddScoped<IPayslipMailer, PayslipMailer>();
@@ -53,6 +53,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IGeneralParameterService, GeneralParameterService>();
+        services.AddScoped<ISmtpSettingService, SmtpSettingService>();
         services.AddScoped<IWorkstationToolService, WorkstationToolService>();
         services.AddScoped<IMailTemplateService, MailTemplateService>();
         services.AddScoped<ISageConnectionService, SageConnectionService>();

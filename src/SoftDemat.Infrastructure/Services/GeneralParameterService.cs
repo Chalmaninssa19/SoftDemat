@@ -41,6 +41,8 @@ public sealed class GeneralParameterService : IGeneralParameterService
         var parameter = await GetRequiredAsync(cancellationToken);
         parameter.ArchiveFolder = request.ArchiveFolder.Trim();
         parameter.Cc = request.Cc?.Trim() ?? string.Empty;
+        parameter.SageFolder = request.SageFolder?.Trim() ?? string.Empty;
+        parameter.SenderEmail = request.SenderEmail?.Trim() ?? string.Empty;
         var sender = await SaveSenderAsync(request, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Paramètres d'envoi mis à jour");
@@ -53,7 +55,6 @@ public sealed class GeneralParameterService : IGeneralParameterService
         var creating = sender is null;
         sender ??= new MailSenderSetting { Id = MailSenderSetting.SingletonId };
         sender.SenderTool = request.SenderTool;
-        sender.SenderAddress = MailSenderTools.IsOutlook(request.SenderTool) ? string.Empty : request.SenderAddress!.Trim();
         if (creating)
             await _senders.AddAsync(sender, cancellationToken);
         return sender;
@@ -67,6 +68,8 @@ public sealed class GeneralParameterService : IGeneralParameterService
         => new(
             parameter.ArchiveFolder,
             parameter.Cc,
-            sender?.SenderTool ?? MailSenderTools.Outlook,
-            sender?.SenderAddress ?? string.Empty);
+            sender is null ? MailSenderTools.Outlook : MailSenderTools.Resolve(sender.SenderTool) ?? sender.SenderTool,
+            sender?.SenderAddress ?? string.Empty,
+            parameter.SageFolder ?? string.Empty,
+            parameter.SenderEmail ?? string.Empty);
 }

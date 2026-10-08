@@ -22,7 +22,8 @@
 - ❌ Ajouter un `PackageReference` à `SoftDemat.Domain` — le Domain est du C# pur (System.* uniquement)
 - ❌ Référencer Infrastructure ou Api depuis Application
 - ❌ Injecter `DbContext` directement dans un service métier → passer par `IRepository` / repository spécialisé
-- ❌ Utiliser EF Core, BCrypt, JWT, SMTP en dehors d'Infrastructure
+- ❌ Utiliser EF Core, BCrypt, JWT, SMTP, MailKit ou Outlook en dehors d'Infrastructure
+- Le mode d'envoi persisté est `Outlook` ou `MailKit`. La valeur historique `Address` signifie MailKit. Le SMTP MailKit est lu dans `G_SMTP`, pas dans la configuration.
 - ❌ Mettre de la logique métier, de la validation manuelle ou du mapping dans un controller
 - ❌ Exposer une entité du Domain dans une réponse HTTP → toujours un DTO
 - ❌ `Console.WriteLine` → toujours `ILogger<T>`

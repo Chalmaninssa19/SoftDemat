@@ -15,11 +15,10 @@ public sealed class UpdateGeneralParameterRequestValidator : AbstractValidator<U
             .WithMessage("L'adresse en copie cachée est invalide.");
         RuleFor(request => request.SenderTool)
             .Must(MailSenderTools.IsKnown)
-            .WithMessage("Choisissez Outlook ou une adresse d'expéditeur.");
-        RuleFor(request => request.SenderAddress)
-            .NotEmpty()
+            .WithMessage("Choisissez Outlook ou MailKit.");
+        RuleFor(request => request.SenderEmail)
             .EmailAddress()
-            .When(request => request.SenderTool == MailSenderTools.Address)
-            .WithMessage("L'adresse de l'expéditeur est invalide.");
+            .When(request => !string.IsNullOrWhiteSpace(request.SenderEmail))
+            .WithMessage("L'e-mail expéditeur est invalide.");
     }
 }

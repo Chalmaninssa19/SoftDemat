@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
 import { AuthService } from '../services/auth.service';
@@ -18,6 +18,7 @@ export class ShellComponent {
   readonly session = this.auth.session;
   readonly isAdmin = computed(() => this.session()?.role === 'Administrateur');
   readonly menuOpen = signal(false);
+  readonly settingsOpen = signal(this.router.url.startsWith('/parametrage'));
   private readonly url = toSignal(
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
@@ -26,8 +27,20 @@ export class ShellComponent {
     ),
     { initialValue: this.router.url },
   );
+  readonly settingsActive = computed(() => (this.url() ?? '').split('?')[0].startsWith('/parametrage'));
   readonly pageTitle = computed(() => this.titleOf(this.url() ?? '/'));
   readonly initials = computed(() => this.letters(this.session()?.name ?? ''));
+
+  constructor() {
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      takeUntilDestroyed(),
+    ).subscribe((event) => {
+      if (event.urlAfterRedirects.startsWith('/parametrage')) {
+        this.settingsOpen.set(true);
+      }
+    });
+  }
 
   logout(): void {
     this.auth.logout();
@@ -41,6 +54,10 @@ export class ShellComponent {
     this.menuOpen.set(false);
   }
 
+  toggleSettings(): void {
+    this.settingsOpen.update((open) => !open);
+  }
+
   private titleOf(url: string): string {
     const path = url.split('?')[0];
     if (path.startsWith('/dematerialisation')) {
@@ -50,7 +67,7 @@ export class ShellComponent {
       return 'Historique';
     }
     if (path.startsWith('/parametrage/envoi')) {
-      return "Paramètres d'envoi";
+      return 'Envoi et archivage';
     }
     if (path.startsWith('/parametrage')) {
       return 'Connexion Sage';

@@ -19,4 +19,12 @@ public sealed class MailTemplateRepository : IMailTemplateRepository
 
     public Task<MailTemplate?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         => _context.MailTemplates.FirstOrDefaultAsync(template => template.Id == id, cancellationToken);
+
+    public Task AddAsync(MailTemplate template, CancellationToken cancellationToken = default)
+    {
+        _context.MailTemplates.Add(template);
+        return Task.CompletedTask;
+    }
+
+    public void Remove(MailTemplate template) => _context.MailTemplates.Remove(template);
 }

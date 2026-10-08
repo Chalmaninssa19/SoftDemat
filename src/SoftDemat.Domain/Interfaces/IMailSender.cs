@@ -11,5 +11,5 @@ public sealed record OutgoingMail(
 
 public interface IMailSender
 {
-    Task SendAsync(OutgoingMail mail, CancellationToken cancellationToken = default);
+    Task<string> SendAsync(OutgoingMail mail, CancellationToken cancellationToken = default);
 }
