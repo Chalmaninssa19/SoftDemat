@@ -2,7 +2,6 @@
   <form class="ui-card space-y-4 p-6" [formGroup]="general" (ngSubmit)="saveGeneral()">
     <p class="ui-kicker">Envoi</p>
     <h1 class="ui-title">Archivage et expéditeur</h1>
-    <a routerLink="/parametrage/sage" class="text-sm text-accent">Connexion Sage</a>
     <p class="text-sm text-muted">Les deux modes envoient le même message : destinataire Sage du matricule, copie, sujet, corps HTML et pièce jointe. Aucun mode ne remplace l'autre en cas d'échec.</p>
     <div>
       <label class="ui-label" for="tool">Mode d'envoi</label>
