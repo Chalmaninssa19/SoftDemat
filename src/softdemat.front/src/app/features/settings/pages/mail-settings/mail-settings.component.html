@@ -84,13 +84,22 @@
     </div>
   </form>
   <form class="ui-card space-y-4 p-6 lg:col-span-2" [formGroup]="smtp" (ngSubmit)="saveSmtp()">
-    <p class="ui-kicker">Envoi</p>
-    <h2 class="ui-title">Serveur SMTP</h2>
-    <p class="text-sm text-muted">Ces valeurs sont lues en base à chaque envoi MailKit. Le mot de passe n'est jamais réaffiché. Laissez-le vide pour conserver celui déjà enregistré.</p>
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <p class="ui-kicker">Envoi</p>
+        <h2 class="ui-title">Serveurs SMTP</h2>
+      </div>
+      <button type="button" class="ui-btn-ghost shrink-0" (click)="createSmtp()">Nouveau</button>
+    </div>
+    <p class="text-sm text-muted">Le serveur actif est utilisé pour les envois MailKit. Le mot de passe n'est jamais réaffiché. Laissez-le vide pour conserver celui déjà enregistré.</p>
     <div class="grid gap-4 md:grid-cols-2">
       <div>
+        <label class="ui-label" for="smtp-name">Nom</label>
+        <input id="smtp-name" class="ui-field" formControlName="name" maxlength="100" />
+      </div>
+      <div>
         <label class="ui-label" for="smtp-host">Hôte</label>
-        <input id="smtp-host" class="ui-field" formControlName="host" />
+        <input id="smtp-host" class="ui-field" formControlName="host" maxlength="200" />
       </div>
       <div>
         <label class="ui-label" for="smtp-port">Port</label>
@@ -114,7 +123,59 @@
       </label>
     </div>
     <div class="flex justify-end">
-      <button type="submit" class="ui-btn">Enregistrer le SMTP</button>
+      <button type="submit" class="ui-btn">{{ selectedSmtpId() === null ? 'Ajouter le serveur SMTP' : 'Enregistrer les modifications' }}</button>
     </div>
   </form>
+  <section class="ui-card space-y-4 p-6 lg:col-span-2" aria-labelledby="smtp-list-title">
+    <div>
+      <p class="ui-kicker">En base</p>
+      <h2 id="smtp-list-title" class="ui-title">Configurations SMTP enregistrées</h2>
+    </div>
+    @if (smtpSettings().length > 0) {
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[760px] text-left text-sm">
+          <thead>
+            <tr class="border-b border-white/10 text-muted">
+              <th class="px-3 py-2 font-medium">Nom</th>
+              <th class="px-3 py-2 font-medium">Hôte</th>
+              <th class="px-3 py-2 font-medium">Port</th>
+              <th class="px-3 py-2 font-medium">Utilisateur</th>
+              <th class="px-3 py-2 font-medium">Expéditeur</th>
+              <th class="px-3 py-2 font-medium">État</th>
+              <th class="px-3 py-2 font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (setting of smtpSettings(); track setting.id) {
+              <tr class="border-b border-white/5">
+                <td class="px-3 py-3">{{ setting.name }}</td>
+                <td class="px-3 py-3">{{ setting.host }}</td>
+                <td class="px-3 py-3">{{ setting.port }}</td>
+                <td class="px-3 py-3">{{ setting.user || '—' }}</td>
+                <td class="px-3 py-3">{{ setting.fromAddress }}</td>
+                <td class="px-3 py-3">
+                  @if (setting.isActive) {
+                    <span class="font-semibold text-green-300">Active</span>
+                  } @else {
+                    <span class="text-muted">Inactive</span>
+                  }
+                </td>
+                <td class="px-3 py-3">
+                  <div class="flex gap-2">
+                    <button type="button" class="ui-btn-ghost" (click)="selectSmtp(setting.id)">Modifier</button>
+                    @if (!setting.isActive) {
+                      <button type="button" class="ui-btn-ghost" (click)="activateSmtp(setting.id)">Activer</button>
+                    }
+                    <button type="button" class="ui-btn-ghost" (click)="removeSmtp(setting.id)">Supprimer</button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <p class="text-sm text-muted">Aucune configuration SMTP enregistrée en base.</p>
+    }
+  </section>
 </section>

@@ -18,7 +18,7 @@ public sealed class SmtpMailSender : IMailSender
 
     public async Task<string> SendAsync(OutgoingMail mail, CancellationToken cancellationToken = default)
     {
-        var setting = await _settings.GetAsync(cancellationToken);
+        var setting = await _settings.GetActiveAsync(cancellationToken);
         var from = ResolveFrom(mail, setting);
         var message = await CreateMessageAsync(mail, from, cancellationToken);
         await DeliverAsync(setting!, message, cancellationToken);

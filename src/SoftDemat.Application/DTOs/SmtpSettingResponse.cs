@@ -1,6 +1,9 @@
 namespace SoftDemat.Application.DTOs;
 
 public sealed record SmtpSettingResponse(
+    int Id,
+    string Name,
+    bool IsActive,
     string Host,
     int Port,
     bool UseSsl,

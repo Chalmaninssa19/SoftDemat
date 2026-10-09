@@ -37,6 +37,9 @@ export interface GeneralParameter {
 }
 
 export interface SmtpSetting {
+  id: number;
+  name: string;
+  isActive: boolean;
   host: string;
   port: number;
   useSsl: boolean;
@@ -107,13 +110,14 @@ export class SettingsApiService {
       .pipe(map((response) => response.data));
   }
 
-  smtp(): Observable<SmtpSetting> {
+  smtp(): Observable<SmtpSetting[]> {
     return this.http
-      .get<ApiResponse<SmtpSetting>>(`${environment.apiUrl}/smtp-settings`)
-      .pipe(map((response) => response.data));
+      .get<ApiResponse<SmtpSetting[]>>(`${environment.apiUrl}/smtp-settings`)
+      .pipe(map((response) => response.data ?? []));
   }
 
-  saveSmtp(payload: {
+  createSmtp(payload: {
+    name: string;
     host: string;
     port: number;
     useSsl: boolean;
@@ -122,15 +126,30 @@ export class SettingsApiService {
     fromAddress: string;
   }): Observable<SmtpSetting> {
     return this.http
-      .put<ApiResponse<SmtpSetting>>(`${environment.apiUrl}/smtp-settings`, {
-        host: payload.host,
-        port: payload.port,
-        useSsl: payload.useSsl,
-        user: payload.user || null,
-        password: payload.password || null,
-        fromAddress: payload.fromAddress,
-      })
+      .post<ApiResponse<SmtpSetting>>(`${environment.apiUrl}/smtp-settings`, this.smtpBody(payload))
       .pipe(map((response) => response.data));
+  }
+
+  updateSmtp(id: number, payload: {
+    name: string;
+    host: string;
+    port: number;
+    useSsl: boolean;
+    user: string;
+    password: string;
+    fromAddress: string;
+  }): Observable<SmtpSetting> {
+    return this.http
+      .put<ApiResponse<SmtpSetting>>(`${environment.apiUrl}/smtp-settings/${id}`, this.smtpBody(payload))
+      .pipe(map((response) => response.data));
+  }
+
+  activateSmtp(id: number): Observable<void> {
+    return this.http.put<void>(`${environment.apiUrl}/smtp-settings/${id}/activation`, {});
+  }
+
+  deleteSmtp(id: number): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/smtp-settings/${id}`);
   }
 
   browseArchive(): Observable<string> {
@@ -151,6 +170,26 @@ export class SettingsApiService {
       mailObject: template.mailObject,
       mailContent: template.mailContent,
       mailCode: template.mailCode,
+    };
+  }
+
+  private smtpBody(payload: {
+    name: string;
+    host: string;
+    port: number;
+    useSsl: boolean;
+    user: string;
+    password: string;
+    fromAddress: string;
+  }) {
+    return {
+      name: payload.name,
+      host: payload.host,
+      port: payload.port,
+      useSsl: payload.useSsl,
+      user: payload.user || null,
+      password: payload.password || null,
+      fromAddress: payload.fromAddress,
     };
   }
 }

@@ -4,6 +4,9 @@ namespace SoftDemat.Application.Services.Interfaces;
 
 public interface ISmtpSettingService
 {
-    Task<SmtpSettingResponse> GetAsync(CancellationToken cancellationToken = default);
-    Task<SmtpSettingResponse> UpdateAsync(UpdateSmtpSettingRequest request, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<SmtpSettingResponse>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<SmtpSettingResponse> CreateAsync(UpdateSmtpSettingRequest request, CancellationToken cancellationToken = default);
+    Task<SmtpSettingResponse> UpdateAsync(int id, UpdateSmtpSettingRequest request, CancellationToken cancellationToken = default);
+    Task ActivateAsync(int id, CancellationToken cancellationToken = default);
+    Task DeleteAsync(int id, CancellationToken cancellationToken = default);
 }

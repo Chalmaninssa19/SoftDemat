@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
 import { AuthService } from '../../../../core/services/auth.service';
 import { FieldErrorComponent } from '../../../../shared/components/field-error/field-error.component';
 
@@ -23,25 +24,31 @@ export class ForgotPasswordComponent {
   });
 
   submit(): void {
+    if (this.submitting()) {
+      return;
+    }
+
     this.submitted.set(true);
     this.successMessage.set(null);
     this.errorMessage.set(null);
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.submitting.set(false);
       return;
     }
 
     this.submitting.set(true);
     this.auth.requestPasswordReset(this.form.controls.email.value)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.submitting.set(false)),
+      )
       .subscribe({
         next: (message) => {
           this.successMessage.set(message);
-          this.submitting.set(false);
         },
         error: (error: unknown) => {
           this.errorMessage.set(this.auth.messageOf(error));
-          this.submitting.set(false);
         },
       });
   }

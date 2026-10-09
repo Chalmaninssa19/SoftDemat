@@ -7,6 +7,7 @@ public sealed class UpdateSmtpSettingRequestValidator : AbstractValidator<Update
 {
     public UpdateSmtpSettingRequestValidator()
     {
+        RuleFor(request => request.Name).NotEmpty().MaximumLength(100).WithMessage("Le nom du serveur SMTP est obligatoire.");
         RuleFor(request => request.Host).NotEmpty().MaximumLength(200).WithMessage("Le serveur SMTP est obligatoire.");
         RuleFor(request => request.Port).InclusiveBetween(1, 65535).WithMessage("Le port SMTP est invalide.");
         RuleFor(request => request.User).MaximumLength(200);

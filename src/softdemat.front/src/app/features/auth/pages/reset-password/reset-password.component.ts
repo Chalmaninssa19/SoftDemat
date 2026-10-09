@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
 import { AuthService } from '../../../../core/services/auth.service';
 import { FieldErrorComponent } from '../../../../shared/components/field-error/field-error.component';
 
@@ -25,29 +26,36 @@ export class ResetPasswordComponent {
   });
 
   submit(): void {
+    if (this.submitting()) {
+      return;
+    }
+
     this.submitted.set(true);
     this.errorMessage.set(null);
     if (!this.token) {
       this.errorMessage.set('Le lien de réinitialisation est invalide ou expiré.');
+      this.submitting.set(false);
       return;
     }
     if (this.form.invalid || this.form.controls.newPassword.value !== this.form.controls.confirmation.value) {
       this.form.markAllAsTouched();
+      this.submitting.set(false);
       return;
     }
 
     this.submitting.set(true);
     const { newPassword, confirmation } = this.form.getRawValue();
     this.auth.resetPassword(this.token, newPassword, confirmation)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.submitting.set(false)),
+      )
       .subscribe({
         next: () => {
           this.success.set(true);
-          this.submitting.set(false);
         },
         error: (error: unknown) => {
           this.errorMessage.set(this.auth.messageOf(error));
-          this.submitting.set(false);
         },
       });
   }

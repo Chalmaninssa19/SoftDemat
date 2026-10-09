@@ -1,13 +1,12 @@
 import { DestroyRef, ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
 import { NotificationService } from '../../../../core/services/notification.service';
-import { MailTemplate, SettingsApiService } from '../../services/settings-api.service';
+import { MailTemplate, SettingsApiService, SmtpSetting } from '../../services/settings-api.service';
 
 @Component({
   selector: 'app-mail-settings',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule],
   templateUrl: './mail-settings.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -16,6 +15,8 @@ export class MailSettingsComponent {
   private readonly notifications = inject(NotificationService);
   private readonly destroyRef = inject(DestroyRef);
   readonly templates = signal<MailTemplate[]>([]);
+  readonly smtpSettings = signal<SmtpSetting[]>([]);
+  readonly selectedSmtpId = signal<number | null>(null);
   readonly outlookAddress = signal('');
   readonly browsing = signal(false);
   readonly general = inject(FormBuilder).nonNullable.group({
@@ -26,6 +27,7 @@ export class MailSettingsComponent {
     senderTool: ['Outlook', Validators.required],
   });
   readonly smtp = inject(FormBuilder).nonNullable.group({
+    name: ['', Validators.required],
     host: ['', Validators.required],
     port: [587, [Validators.required, Validators.min(1), Validators.max(65535)]],
     useSsl: [true],
@@ -51,16 +53,7 @@ export class MailSettingsComponent {
         senderTool: parameter.senderTool,
       });
     });
-    this.api.smtp().pipe(takeUntilDestroyed()).subscribe((setting) => {
-      this.smtp.patchValue({
-        host: setting.host,
-        port: setting.port,
-        useSsl: setting.useSsl,
-        user: setting.user,
-        password: '',
-        fromAddress: setting.fromAddress,
-      });
-    });
+    this.refreshSmtp();
     this.api.templates().pipe(takeUntilDestroyed()).subscribe((templates) => {
       this.templates.set(templates);
       if (templates[0]) {
@@ -99,9 +92,75 @@ export class MailSettingsComponent {
       this.smtp.markAllAsTouched();
       return;
     }
-    this.api.saveSmtp(this.smtp.getRawValue()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.smtp.controls.password.reset('');
+    const value = this.smtp.getRawValue();
+    const selectedId = this.selectedSmtpId();
+    const request = selectedId === null
+      ? this.api.createSmtp(value)
+      : this.api.updateSmtp(selectedId, value);
+    request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((saved) => {
+      this.smtpSettings.update((items) => selectedId === null
+        ? [...items, saved]
+        : items.map((item) => item.id === saved.id ? saved : item));
+      this.selectSmtp(saved.id);
       this.notifications.success('Serveur SMTP enregistré.');
+    });
+  }
+
+  selectSmtp(id: number): void {
+    const setting = this.smtpSettings().find((item) => item.id === id);
+    if (!setting) {
+      return;
+    }
+
+    this.selectedSmtpId.set(setting.id);
+    this.smtp.patchValue({
+      name: setting.name,
+      host: setting.host,
+      port: setting.port,
+      useSsl: setting.useSsl,
+      user: setting.user,
+      password: '',
+      fromAddress: setting.fromAddress,
+    });
+  }
+
+  createSmtp(): void {
+    this.selectedSmtpId.set(null);
+    this.smtp.reset({
+      name: '',
+      host: '',
+      port: 587,
+      useSsl: true,
+      user: '',
+      password: '',
+      fromAddress: '',
+    });
+  }
+
+  activateSmtp(id: number): void {
+    this.api.activateSmtp(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.smtpSettings.update((items) => items.map((item) => ({ ...item, isActive: item.id === id })));
+      this.selectSmtp(id);
+      this.notifications.success('Serveur SMTP activé.');
+    });
+  }
+
+  removeSmtp(id: number): void {
+    this.api.deleteSmtp(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.refreshSmtp();
+      this.notifications.success('Serveur SMTP supprimé.');
+    });
+  }
+
+  private refreshSmtp(): void {
+    this.api.smtp().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((settings) => {
+      this.smtpSettings.set(settings);
+      const selection = settings.find((setting) => setting.isActive) ?? settings[0];
+      if (selection) {
+        this.selectSmtp(selection.id);
+      } else {
+        this.createSmtp();
+      }
     });
   }
 

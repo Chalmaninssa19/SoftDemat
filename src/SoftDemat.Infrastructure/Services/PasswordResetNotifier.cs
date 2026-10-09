@@ -42,6 +42,7 @@ public sealed class PasswordResetNotifier : IPasswordResetNotifier
         catch (Exception exception) when (IsDeliveryError(exception))
         {
             _logger.LogError(exception, "L'envoi du lien de réinitialisation a échoué.");
+            throw new DomainException("Impossible d'envoyer le lien de réinitialisation pour le moment.", exception);
         }
     }
 

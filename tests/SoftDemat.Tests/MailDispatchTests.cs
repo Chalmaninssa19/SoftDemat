@@ -144,7 +144,7 @@ public class MailDispatchTests
     public async Task MailKit_MissingSmtp_ThrowsBeforeConnect()
     {
         // Arrange
-        var sender = new SmtpMailSender(new SmtpStore(null));
+        var sender = new SmtpMailSender(new SmtpStore());
 
         // Act
         var act = async () => await sender.SendAsync(Sample(), CancellationToken.None);
@@ -184,17 +184,23 @@ public class MailDispatchTests
 
     private sealed class SmtpStore : ISmtpSettingRepository
     {
-        private readonly SmtpSetting? _setting;
+        public Task<IReadOnlyList<SmtpSetting>> GetAllAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<SmtpSetting>>([]);
 
-        public SmtpStore(SmtpSetting? setting)
-        {
-            _setting = setting;
-        }
+        public Task<IReadOnlyList<SmtpSetting>> GetAllForUpdateAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<SmtpSetting>>([]);
 
-        public Task<SmtpSetting?> GetAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(_setting);
+        public Task<SmtpSetting?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+            => Task.FromResult<SmtpSetting?>(null);
+
+        public Task<SmtpSetting?> GetActiveAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult<SmtpSetting?>(null);
 
         public Task AddAsync(SmtpSetting setting, CancellationToken cancellationToken = default)
             => Task.CompletedTask;
+
+        public void Remove(SmtpSetting setting)
+        {
+        }
     }
 }
