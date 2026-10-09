@@ -152,6 +152,12 @@ export class SettingsApiService {
     return this.http.delete<void>(`${environment.apiUrl}/smtp-settings/${id}`);
   }
 
+  testSmtp(id: number): Observable<string> {
+    return this.http
+      .post<ApiResponse<string>>(`${environment.apiUrl}/smtp-settings/${id}/tests`, {})
+      .pipe(map((response) => response.data));
+  }
+
   browseArchive(): Observable<string> {
     return this.http
       .post<ApiResponse<{ folder: string }>>(`${environment.apiUrl}/general-parameters/archive-browse`, {})

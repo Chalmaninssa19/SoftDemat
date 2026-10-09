@@ -1,6 +1,7 @@
 import { DestroyRef, ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { finalize } from 'rxjs';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { MailTemplate, SettingsApiService, SmtpSetting } from '../../services/settings-api.service';
 
@@ -17,6 +18,7 @@ export class MailSettingsComponent {
   readonly templates = signal<MailTemplate[]>([]);
   readonly smtpSettings = signal<SmtpSetting[]>([]);
   readonly selectedSmtpId = signal<number | null>(null);
+  readonly testingSmtpId = signal<number | null>(null);
   readonly outlookAddress = signal('');
   readonly browsing = signal(false);
   readonly general = inject(FormBuilder).nonNullable.group({
@@ -143,6 +145,16 @@ export class MailSettingsComponent {
       this.selectSmtp(id);
       this.notifications.success('Serveur SMTP activé.');
     });
+  }
+
+  testSmtp(id: number): void {
+    this.testingSmtpId.set(id);
+    this.api.testSmtp(id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.testingSmtpId.set(null)),
+      )
+      .subscribe((message) => this.notifications.success(message));
   }
 
   removeSmtp(id: number): void {

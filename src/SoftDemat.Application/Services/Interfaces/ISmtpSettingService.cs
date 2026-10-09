@@ -9,4 +9,5 @@ public interface ISmtpSettingService
     Task<SmtpSettingResponse> UpdateAsync(int id, UpdateSmtpSettingRequest request, CancellationToken cancellationToken = default);
     Task ActivateAsync(int id, CancellationToken cancellationToken = default);
     Task DeleteAsync(int id, CancellationToken cancellationToken = default);
+    Task<string> TestAsync(int id, CancellationToken cancellationToken = default);
 }

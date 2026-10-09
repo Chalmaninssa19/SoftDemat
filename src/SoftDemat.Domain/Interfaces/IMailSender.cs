@@ -1,3 +1,5 @@
+using SoftDemat.Domain.Entities;
+
 namespace SoftDemat.Domain.Interfaces;
 
 public sealed record OutgoingMail(
@@ -12,4 +14,5 @@ public sealed record OutgoingMail(
 public interface IMailSender
 {
     Task<string> SendAsync(OutgoingMail mail, CancellationToken cancellationToken = default);
+    Task<string> SendAsync(OutgoingMail mail, SmtpSetting setting, CancellationToken cancellationToken = default);
 }

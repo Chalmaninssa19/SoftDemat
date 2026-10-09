@@ -91,7 +91,7 @@
       </div>
       <button type="button" class="ui-btn-ghost shrink-0" (click)="createSmtp()">Nouveau</button>
     </div>
-    <p class="text-sm text-muted">Le serveur actif est utilisé pour les envois MailKit. Le mot de passe n'est jamais réaffiché. Laissez-le vide pour conserver celui déjà enregistré.</p>
+    <p class="text-sm text-muted">Le serveur actif est utilisé pour les envois MailKit et pour les liens de réinitialisation de mot de passe. Le mot de passe n'est jamais réaffiché. Laissez-le vide pour conserver celui déjà enregistré.</p>
     <div class="grid gap-4 md:grid-cols-2">
       <div>
         <label class="ui-label" for="smtp-name">Nom</label>
@@ -116,6 +116,7 @@
       <div>
         <label class="ui-label" for="smtp-from">Expéditeur</label>
         <input id="smtp-from" class="ui-field" formControlName="fromAddress" />
+        <p class="mt-1 text-xs text-muted">Adresse appartenant au compte « Utilisateur ». La plupart des serveurs refusent d'envoyer au nom d'une autre adresse.</p>
       </div>
       <label class="flex items-center gap-2 text-sm">
         <input type="checkbox" formControlName="useSsl" />
@@ -163,6 +164,9 @@
                 <td class="px-3 py-3">
                   <div class="flex gap-2">
                     <button type="button" class="ui-btn-ghost" (click)="selectSmtp(setting.id)">Modifier</button>
+                    <button type="button" class="ui-btn-ghost" [disabled]="testingSmtpId() !== null" (click)="testSmtp(setting.id)">
+                      {{ testingSmtpId() === setting.id ? 'Test…' : 'Tester' }}
+                    </button>
                     @if (!setting.isActive) {
                       <button type="button" class="ui-btn-ghost" (click)="activateSmtp(setting.id)">Activer</button>
                     }

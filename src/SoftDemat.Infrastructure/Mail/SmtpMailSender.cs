@@ -18,17 +18,34 @@ public sealed class SmtpMailSender : IMailSender
 
     public async Task<string> SendAsync(OutgoingMail mail, CancellationToken cancellationToken = default)
     {
-        var setting = await _settings.GetActiveAsync(cancellationToken);
+        var setting = await _settings.GetActiveAsync(cancellationToken)
+            ?? throw new DomainException("Le serveur SMTP n'est pas configuré.");
+        return await SendAsync(mail, setting, cancellationToken);
+    }
+
+    public async Task<string> SendAsync(
+        OutgoingMail mail,
+        SmtpSetting setting,
+        CancellationToken cancellationToken = default)
+    {
         var from = ResolveFrom(mail, setting);
         var message = await CreateMessageAsync(mail, from, cancellationToken);
-        await DeliverAsync(setting!, message, cancellationToken);
+        try
+        {
+            await DeliverAsync(setting, message, cancellationToken);
+        }
+        catch (Exception exception) when (SmtpDeliveryFailure.IsDeliveryFailure(exception))
+        {
+            throw SmtpDeliveryFailure.ToDomainException(exception, setting, from);
+        }
+
         return from;
     }
 
-    private static string ResolveFrom(OutgoingMail mail, SmtpSetting? setting)
+    private static string ResolveFrom(OutgoingMail mail, SmtpSetting setting)
     {
-        var from = string.IsNullOrWhiteSpace(mail.From) ? setting?.FromAddress : mail.From;
-        if (setting is null || string.IsNullOrWhiteSpace(setting.Host) || string.IsNullOrWhiteSpace(from))
+        var from = string.IsNullOrWhiteSpace(mail.From) ? setting.FromAddress : mail.From;
+        if (string.IsNullOrWhiteSpace(setting.Host) || string.IsNullOrWhiteSpace(from))
             throw new DomainException("Le serveur SMTP n'est pas configuré.");
 
         return from;

@@ -105,17 +105,81 @@ public class SmtpSettingTests
         await act.Should().ThrowAsync<NotFoundException>();
     }
 
+    [Fact]
+    public async Task Test_InactiveSetting_SendsTestMailToItsFromAddressWithThatSetting()
+    {
+        // Arrange
+        var inactive = new SmtpSetting
+        {
+            Id = 2, Name = "Recette", Host = "smtp.softwell.mg", FromAddress = "paie@softwell.mg"
+        };
+        var mailSender = new Mock<IMailSender>();
+        var sut = Service(new SmtpStore(inactive), mailSender.Object);
+
+        // Act
+        var message = await sut.TestAsync(inactive.Id, CancellationToken.None);
+
+        // Assert
+        message.Should().Contain("paie@softwell.mg");
+        mailSender.Verify(sender => sender.SendAsync(
+            It.Is<OutgoingMail>(mail => mail.To == "paie@softwell.mg"),
+            inactive,
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Test_UnknownSetting_ThrowsNotFoundWithoutSending()
+    {
+        // Arrange
+        var mailSender = new Mock<IMailSender>();
+        var sut = Service(new SmtpStore(), mailSender.Object);
+
+        // Act
+        var act = () => sut.TestAsync(9, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>();
+        mailSender.Verify(sender => sender.SendAsync(
+            It.IsAny<OutgoingMail>(),
+            It.IsAny<SmtpSetting>(),
+            It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Test_ServerRefusesSender_ReturnsExplicitReason()
+    {
+        // Arrange
+        var setting = new SmtpSetting
+        {
+            Id = 1, Name = "SMTP", Host = "smtp.softwell.mg", FromAddress = "rh@softwell.mg"
+        };
+        var mailSender = new Mock<IMailSender>();
+        mailSender.Setup(sender => sender.SendAsync(It.IsAny<OutgoingMail>(), setting, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DomainException("Le serveur SMTP smtp.softwell.mg refuse l'expéditeur rh@softwell.mg."));
+        var sut = Service(new SmtpStore(setting), mailSender.Object);
+
+        // Act
+        var act = () => sut.TestAsync(setting.Id, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<DomainException>().WithMessage("*refuse l'expéditeur rh@softwell.mg*");
+    }
+
     private static UpdateSmtpSettingRequest Request(string host = "smtp.softwell.mg")
         => new("Paie", host, 587, true, "paie", null, "paie@softwell.mg");
 
     private static SmtpSettingService Service(params SmtpSetting[] settings)
         => Service(new SmtpStore(settings));
 
-    private static SmtpSettingService Service(SmtpStore store)
+    private static SmtpSettingService Service(SmtpStore store, IMailSender? mailSender = null)
     {
         var unitOfWork = new Mock<IUnitOfWork>();
         unitOfWork.Setup(work => work.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
-        return new SmtpSettingService(store, unitOfWork.Object, NullLogger<SmtpSettingService>.Instance);
+        return new SmtpSettingService(
+            store,
+            mailSender ?? Mock.Of<IMailSender>(),
+            unitOfWork.Object,
+            NullLogger<SmtpSettingService>.Instance);
     }
 
     private sealed class SmtpStore : ISmtpSettingRepository

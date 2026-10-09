@@ -9,16 +9,23 @@ namespace SoftDemat.Infrastructure.Services;
 
 public sealed class SmtpSettingService : ISmtpSettingService
 {
+    private const string TestSubject = "Test d'envoi SOFT-DEMAT";
+    private const string TestBody =
+        "<p>Ce message confirme que SOFT-DEMAT peut envoyer des e-mails avec ce serveur SMTP.</p>";
+
     private readonly ISmtpSettingRepository _settings;
+    private readonly IMailSender _mailSender;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<SmtpSettingService> _logger;
 
     public SmtpSettingService(
         ISmtpSettingRepository settings,
+        IMailSender mailSender,
         IUnitOfWork unitOfWork,
         ILogger<SmtpSettingService> logger)
     {
         _settings = settings;
+        _mailSender = mailSender;
         _unitOfWork = unitOfWork;
         _logger = logger;
     }
@@ -79,6 +86,15 @@ public sealed class SmtpSettingService : ISmtpSettingService
         _settings.Remove(setting);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Configuration SMTP {Name} supprimée", setting.Name);
+    }
+
+    public async Task<string> TestAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var setting = await GetRequiredAsync(id, cancellationToken);
+        var mail = new OutgoingMail(setting.FromAddress, null, TestSubject, TestBody, string.Empty, string.Empty);
+        await _mailSender.SendAsync(mail, setting, cancellationToken);
+        _logger.LogInformation("Test SMTP {Name} réussi vers {Recipient}", setting.Name, setting.FromAddress);
+        return $"Message de test envoyé à {setting.FromAddress}.";
     }
 
     private async Task<SmtpSetting> GetRequiredAsync(int id, CancellationToken cancellationToken)

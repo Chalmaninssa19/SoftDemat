@@ -1,6 +1,3 @@
-using System.Net.Sockets;
-using System.Security.Authentication;
-using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using SoftDemat.Application.Services.Interfaces;
@@ -39,9 +36,9 @@ public sealed class PasswordResetNotifier : IPasswordResetNotifier
                 string.Empty,
                 string.Empty), cancellationToken);
         }
-        catch (Exception exception) when (IsDeliveryError(exception))
+        catch (DomainException exception)
         {
-            _logger.LogError(exception, "L'envoi du lien de réinitialisation a échoué.");
+            _logger.LogError(exception, "L'envoi du lien de réinitialisation a échoué : {Reason}", exception.Message);
             throw new DomainException("Impossible d'envoyer le lien de réinitialisation pour le moment.", exception);
         }
     }
@@ -72,12 +69,4 @@ public sealed class PasswordResetNotifier : IPasswordResetNotifier
             <p>Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer ce message.</p>
             <p>Cordialement,<br>SOFT-DEMAT</p>
             """;
-
-    private static bool IsDeliveryError(Exception exception)
-        => exception is DomainException
-            or SmtpCommandException
-            or SmtpProtocolException
-            or SocketException
-            or AuthenticationException
-            or IOException;
 }

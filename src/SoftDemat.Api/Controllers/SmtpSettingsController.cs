@@ -53,6 +53,12 @@ public sealed class SmtpSettingsController : ControllerBase
     }
 
     [Authorize(Roles = nameof(UserRole.Administrateur))]
+    [HttpPost("{id:int}/tests")]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Test(int id, CancellationToken cancellationToken)
+        => Ok(ApiResponse<string>.Ok(await _service.TestAsync(id, cancellationToken)));
+
+    [Authorize(Roles = nameof(UserRole.Administrateur))]
     [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
