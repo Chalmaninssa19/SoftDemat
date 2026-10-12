@@ -5,11 +5,12 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { finalize } from 'rxjs';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { DialogService } from '../../../../shared/components/modal/dialog.service';
+import { IconButtonComponent } from '../../../../shared/components/icon-button/icon-button.component';
 import { MailTemplate, SettingsApiService, SmtpSetting } from '../../services/settings-api.service';
 
 @Component({
   selector: 'app-mail-settings',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, IconButtonComponent],
   templateUrl: './mail-settings.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

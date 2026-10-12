@@ -57,7 +57,12 @@
       </select>
     </div>
     <div class="flex justify-end">
-      <button type="button" class="ui-btn-ghost" (click)="createMail()">Nouveau</button>
+      <button type="button" class="ui-btn-ghost inline-flex items-center gap-2" (click)="createMail()">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+          <path stroke-linecap="round" d="M12 5v14M5 12h14" />
+        </svg>
+        Nouveau
+      </button>
     </div>
     <p class="text-xs text-muted">Balises : MM, AA, PNOM, NOM, MAT. Les retours à la ligne deviennent des sauts HTML.</p>
     <div>
@@ -78,7 +83,7 @@
     </div>
     <div class="flex justify-end gap-3">
       @if (mail.controls.id.value > 0) {
-        <button type="button" class="ui-btn-ghost" [disabled]="removingMail()" (click)="removeMail()">{{ removingMail() ? 'Suppression…' : 'Supprimer' }}</button>
+        <app-icon-button icon="delete" label="Supprimer ce modèle de mail" variant="danger" [disabled]="removingMail()" [loading]="removingMail()" (click)="removeMail()" />
       }
       <button type="submit" class="ui-btn">Enregistrer le modèle</button>
     </div>
@@ -89,7 +94,12 @@
         <p class="ui-kicker">Envoi</p>
         <h2 class="ui-title">Serveurs SMTP</h2>
       </div>
-      <button type="button" class="ui-btn-ghost shrink-0" (click)="createSmtp()">Nouveau</button>
+      <button type="button" class="ui-btn-ghost inline-flex shrink-0 items-center gap-2" (click)="createSmtp()">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+          <path stroke-linecap="round" d="M12 5v14M5 12h14" />
+        </svg>
+        Nouveau
+      </button>
     </div>
     <p class="text-sm text-muted">Le serveur actif est utilisé pour les envois MailKit et pour les liens de réinitialisation de mot de passe. Le mot de passe n'est jamais réaffiché. Laissez-le vide pour conserver celui déjà enregistré.</p>
     <div class="grid gap-4 md:grid-cols-2">
@@ -162,16 +172,27 @@
                   }
                 </td>
                 <td class="px-3 py-3">
-                  <div class="flex gap-2">
-                    <button type="button" class="ui-btn-ghost" (click)="selectSmtp(setting.id)">Modifier</button>
-                    <button type="button" class="ui-btn-ghost" [disabled]="testingSmtpId() !== null" (click)="testSmtp(setting.id)">
-                      {{ testingSmtpId() === setting.id ? 'Test…' : 'Tester' }}
-                    </button>
+                  <span class="inline-flex items-center gap-2">
+                    <app-icon-button icon="edit" label="Modifier cette configuration SMTP" (click)="selectSmtp(setting.id)" />
+                    <app-icon-button
+                      icon="test"
+                      label="Tester cette configuration SMTP"
+                      [disabled]="testingSmtpId() !== null || removingSmtpId() !== null"
+                      [loading]="testingSmtpId() === setting.id"
+                      (click)="testSmtp(setting.id)"
+                    />
                     @if (!setting.isActive) {
-                      <button type="button" class="ui-btn-ghost" (click)="activateSmtp(setting.id)">Activer</button>
+                      <app-icon-button icon="check" label="Activer cette configuration SMTP" [disabled]="removingSmtpId() !== null" (click)="activateSmtp(setting.id)" />
                     }
-                    <button type="button" class="ui-btn-ghost" [disabled]="removingSmtpId() !== null" (click)="removeSmtp(setting.id, setting.name)">{{ removingSmtpId() === setting.id ? 'Suppression…' : 'Supprimer' }}</button>
-                  </div>
+                    <app-icon-button
+                      icon="delete"
+                      label="Supprimer cette configuration SMTP"
+                      variant="danger"
+                      [disabled]="removingSmtpId() !== null"
+                      [loading]="removingSmtpId() === setting.id"
+                      (click)="removeSmtp(setting.id, setting.name)"
+                    />
+                  </span>
                 </td>
               </tr>
             }

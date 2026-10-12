@@ -17,6 +17,19 @@
   --color-accent: #f5c518;
   --color-accent-deep: #c9a227;
   --color-content: #ffffff;
+  --color-danger: #f87171;
+}
+
+html.light {
+  --color-ink: #eef2f8;
+  --color-sidebar: #ffffff;
+  --color-panel: #ffffff;
+  --color-line: #d8e0ec;
+  --color-field: #f7f9fc;
+  --color-content: #122033;
+  --color-muted: #5d6b82;
+  --color-accent-deep: #8a6a10;
+  --color-danger: #b3261e;
 }
 
 html.light {
@@ -159,6 +172,44 @@ html.dark .login-card .login-field {
   opacity: 0.6;
 }
 
+.ui-icon-btn {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--color-line);
+  border-radius: 0.5rem;
+  color: var(--color-content);
+  display: inline-flex;
+  flex: none;
+  height: 2.5rem;
+  justify-content: center;
+  width: 2.5rem;
+}
+
+.ui-icon-btn:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent-deep);
+}
+
+.ui-icon-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.ui-icon-btn-danger {
+  color: var(--color-danger);
+}
+
+.ui-icon-btn-danger:hover:not(:disabled) {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.ui-icon-btn-primary {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #1a1403;
+}
+
 .ui-btn-ghost {
   background: transparent;
   border: 1px solid var(--color-line);
@@ -195,6 +246,7 @@ html.dark .login-card .login-field {
 .sd-modal-card .ui-btn:focus-visible,
 .sd-modal-card .ui-btn-ghost:focus-visible,
 .sd-modal-card .ui-btn-danger:focus-visible,
+.ui-icon-btn:focus-visible,
 .login-card button:focus-visible,
 .login-card a:focus-visible {
   outline: 2px solid var(--color-accent);

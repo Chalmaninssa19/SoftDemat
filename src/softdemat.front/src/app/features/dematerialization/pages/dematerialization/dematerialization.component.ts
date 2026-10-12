@@ -1,13 +1,18 @@
-import { DestroyRef, ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { DestroyRef, ChangeDetectionStrategy, Component, computed, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, Observable, of, switchMap, tap } from 'rxjs';
 import { DispatchApiService, DispatchResult, MailChoice, PayslipFile, PayslipUploadRejection } from '../../../../core/services/dispatch-api.service';
 import { Establishment, ReferenceApiService } from '../../../../core/services/reference-api.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { DialogService } from '../../../../shared/components/modal/dialog.service';
+import { PaginatedResult } from '../../../../core/models/api-response.model';
 import { DateFrPipe } from '../../../../shared/pipes/date-fr.pipe';
+import { buildPayslipSearchFilter, PayslipSearchCriterion } from '../../payslip-search';
 import { readPayslipFolder } from '../../payslip-folder';
+
+const SEARCH_DEBOUNCE_MS = 300;
 
 @Component({
   selector: 'app-dematerialization',
@@ -21,6 +26,7 @@ export class DematerializationComponent {
   private readonly notifications = inject(NotificationService);
   private readonly dialogs = inject(DialogService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly searchBox = viewChild<ElementRef<HTMLInputElement>>('searchInput');
   readonly currentFolder = signal('');
   readonly folderName = signal('');
   readonly uploading = signal(false);
@@ -34,11 +40,16 @@ export class DematerializationComponent {
   readonly result = signal<DispatchResult | null>(null);
   readonly sending = signal(false);
   readonly confirmingSend = signal(false);
+  readonly filterOpen = signal(true);
+  readonly searching = signal(false);
+  /** Critere visible : « Par nom » ou « Par matricule » (recherche partielle). */
+  readonly criterion = signal<PayslipSearchCriterion>('name');
+  readonly searchPlaceholder = computed(() =>
+    this.criterion() === 'name' ? 'Rechercher par nom…' : 'Rechercher par matricule…',
+  );
   readonly filters = inject(FormBuilder).nonNullable.group({
     establishmentCode: [''],
-    employeeMatricule: [''],
-    matricule: [''],
-    name: [''],
+    search: [''],
     mailTemplateId: [0],
   });
 
@@ -50,6 +61,38 @@ export class DematerializationComponent {
         this.filters.controls.mailTemplateId.setValue(items[0].id);
       }
     });
+
+    // Recherche dynamique : un seul champ, debounce, annule la requete
+    // precedente (switchMap) pour ne jamais afficher de resultats obsoletes.
+    this.filters.controls.search.valueChanges
+      .pipe(
+        map((value) => (value ?? '').trim()),
+        debounceTime(SEARCH_DEBOUNCE_MS),
+        distinctUntilChanged(),
+        filter(() => this.currentFolder() !== ''),
+        tap(() => {
+          this.page.set(1);
+          this.searching.set(true);
+        }),
+        switchMap(() => this.queryFiles().pipe(catchError(() => of(null)))),
+        takeUntilDestroyed(),
+      )
+      .subscribe((result) => {
+        this.searching.set(false);
+        if (result) {
+          this.applyResult(result);
+        }
+      });
+
+    this.filters.controls.establishmentCode.valueChanges
+      .pipe(
+        filter(() => this.currentFolder() !== ''),
+        takeUntilDestroyed(),
+      )
+      .subscribe(() => {
+        this.page.set(1);
+        this.load();
+      });
   }
 
   chooseFolder(input: HTMLInputElement): void {
@@ -80,9 +123,41 @@ export class DematerializationComponent {
     this.load();
   }
 
-  applyFilters(): void {
+  toggleFilter(): void {
+    this.filterOpen.update((open) => !open);
+    if (!this.filterOpen()) {
+      return;
+    }
+    window.setTimeout(() => this.searchBox()?.nativeElement.focus(), 0);
+  }
+
+  selectCriterion(criterion: PayslipSearchCriterion): void {
+    if (this.criterion() === criterion) {
+      this.searchBox()?.nativeElement.focus();
+      return;
+    }
+    this.criterion.set(criterion);
+    window.setTimeout(() => this.searchBox()?.nativeElement.focus(), 0);
+    if (!this.currentFolder()) {
+      return;
+    }
     this.page.set(1);
     this.load();
+  }
+
+  clearSearch(): void {
+    this.filters.controls.search.setValue('');
+    this.searchBox()?.nativeElement.focus();
+  }
+
+  resetFilter(): void {
+    this.criterion.set('name');
+    this.filters.controls.search.setValue('', { emitEvent: false });
+    this.filters.controls.establishmentCode.setValue('', { emitEvent: false });
+    this.page.set(1);
+    if (this.currentFolder()) {
+      this.load();
+    }
   }
 
   changePage(page: number): void {
@@ -149,20 +224,29 @@ export class DematerializationComponent {
   }
 
   private load(): void {
-    const filters = this.filters.getRawValue();
-    this.api.files({
+    if (!this.currentFolder()) {
+      return;
+    }
+    this.queryFiles().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result) => this.applyResult(result));
+  }
+
+  private queryFiles(): Observable<PaginatedResult<PayslipFile>> {
+    const text = buildPayslipSearchFilter(this.criterion(), this.filters.controls.search.value);
+    return this.api.files({
       relativeFolder: this.currentFolder(),
-      establishmentCode: filters.establishmentCode,
-      employeeMatricule: filters.employeeMatricule,
-      matricule: filters.matricule,
-      name: filters.name,
+      establishmentCode: this.filters.controls.establishmentCode.value,
+      employeeMatricule: '',
+      matricule: text.matricule,
+      name: text.name,
       page: this.page(),
-    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result) => {
-      this.files.set(result.items);
-      this.total.set(result.totalCount);
-      const defaults = result.items.filter((file) => file.selectedByDefault).map((file) => file.fileName);
-      this.selected.set(defaults);
     });
+  }
+
+  private applyResult(result: PaginatedResult<PayslipFile>): void {
+    this.files.set(result.items);
+    this.total.set(result.totalCount);
+    const defaults = result.items.filter((file) => file.selectedByDefault).map((file) => file.fileName);
+    this.selected.set(defaults);
   }
 
   private messageOf(error: unknown): string {

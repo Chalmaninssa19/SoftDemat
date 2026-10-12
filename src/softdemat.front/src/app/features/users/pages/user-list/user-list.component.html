@@ -4,7 +4,12 @@
       <p class="ui-kicker">Administration</p>
       <h1 class="ui-title mt-1">Utilisateurs</h1>
     </div>
-    <button type="button" class="ui-btn" (click)="openCreate()">Créer</button>
+    <button type="button" class="ui-btn inline-flex items-center gap-2" (click)="openCreate()">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+        <path stroke-linecap="round" d="M12 5v14M5 12h14" />
+      </svg>
+      Créer
+    </button>
   </div>
   @if (temporaryPassword()) {
     <p class="mt-4 rounded-lg bg-accent/15 px-3 py-2 text-sm text-accent">Mot de passe temporaire : {{ temporaryPassword() }}</p>
@@ -29,14 +34,12 @@
             <td class="px-3 py-2">{{ user.email || '—' }}</td>
             <td class="px-3 py-2">{{ user.role }}</td>
             <td class="px-3 py-2">{{ user.pc }}</td>
-            <td class="space-x-2 px-3 py-2">
-              <button type="button" class="ui-link" [disabled]="isBusy(user)" (click)="edit(user)">Modifier</button>
-              <button type="button" class="ui-link" [disabled]="isBusy(user)" (click)="reset(user)">
-                {{ isBusy(user) ? 'Traitement…' : 'Réinitialiser' }}
-              </button>
-              <button type="button" class="ui-link" [disabled]="isBusy(user)" (click)="remove(user)">
-                {{ isBusy(user) ? 'Traitement…' : 'Supprimer' }}
-              </button>
+            <td class="px-3 py-2">
+              <span class="inline-flex items-center gap-2">
+                <app-icon-button icon="edit" label="Modifier" [disabled]="isBusy(user)" (click)="edit(user)" />
+                <app-icon-button icon="reset" label="Réinitialiser le mot de passe" [disabled]="isBusy(user)" [loading]="isBusy(user) && busyAction() === 'reset'" (click)="reset(user)" />
+                <app-icon-button icon="delete" label="Supprimer" variant="danger" [disabled]="isBusy(user)" [loading]="isBusy(user) && busyAction() === 'delete'" (click)="remove(user)" />
+              </span>
             </td>
           </tr>
         }

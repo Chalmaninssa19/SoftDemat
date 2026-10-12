@@ -6,12 +6,13 @@ import { UsersApiService, UserAccount, UserPayload } from '../../services/users-
 import { NotificationService } from '../../../../core/services/notification.service';
 import { FieldErrorComponent } from '../../../../shared/components/field-error/field-error.component';
 import { DialogService } from '../../../../shared/components/modal/dialog.service';
+import { IconButtonComponent } from '../../../../shared/components/icon-button/icon-button.component';
 import { ModalHeaderComponent } from '../../../../shared/components/modal/modal-header.component';
 import { ModalShellComponent } from '../../../../shared/components/modal/modal-shell.component';
 
 @Component({
   selector: 'app-user-list',
-  imports: [ReactiveFormsModule, FieldErrorComponent, ModalHeaderComponent, ModalShellComponent],
+  imports: [ReactiveFormsModule, FieldErrorComponent, IconButtonComponent, ModalHeaderComponent, ModalShellComponent],
   templateUrl: './user-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -27,6 +28,7 @@ export class UserListComponent {
   readonly modalOpen = signal(false);
   readonly submitting = signal(false);
   readonly busyUserId = signal<number | null>(null);
+  readonly busyAction = signal<'delete' | 'reset' | null>(null);
   readonly temporaryPassword = signal<string | null>(null);
   readonly form = inject(FormBuilder).nonNullable.group({
     name: ['', Validators.required],
@@ -106,14 +108,17 @@ export class UserListComponent {
       return;
     }
     this.busyUserId.set(user.id);
+    this.busyAction.set('delete');
     this.api.delete(user.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.busyUserId.set(null);
+        this.busyAction.set(null);
         this.notifications.success('Utilisateur supprimé.');
         this.load();
       },
       error: (error: unknown) => {
         this.busyUserId.set(null);
+        this.busyAction.set(null);
         void this.dialogs.error(this.messageOf(error, 'Impossible de supprimer cet utilisateur.'));
       },
     });
@@ -133,9 +138,11 @@ export class UserListComponent {
       return;
     }
     this.busyUserId.set(user.id);
+    this.busyAction.set('reset');
     this.api.resetPassword(user.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (password) => {
         this.busyUserId.set(null);
+        this.busyAction.set(null);
         this.temporaryPassword.set(password);
         this.notifications.success('Mot de passe temporaire généré.');
         void this.dialogs.info({
@@ -145,6 +152,7 @@ export class UserListComponent {
       },
       error: (error: unknown) => {
         this.busyUserId.set(null);
+        this.busyAction.set(null);
         void this.dialogs.error(this.messageOf(error, 'Impossible de réinitialiser ce mot de passe.'));
       },
     });
