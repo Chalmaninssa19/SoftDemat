@@ -210,6 +210,42 @@ html.dark .login-card .login-field {
   color: #1a1403;
 }
 
+/*
+ * Champ avec icones integrees (loupe a gauche, actions a droite).
+ * Indispensable car le padding shorthand de ui-field ecrase les classes
+ * utilitaires de padding horizontal (CSS non-layered prioritaire).
+ */
+.ui-field-icon-left {
+  padding-left: 2.75rem;
+}
+
+.ui-field-icon-right {
+  padding-right: 5rem;
+}
+
+/*
+ * Deploiement vertical fluide du panneau de filtre : 350 ms (medium),
+ * sans saccade ni deplacement brutal du contenu sous-jacent.
+ * La technique grid-template-rows 0fr -> 1fr gere les hauteurs dynamiques
+ * et les changements de taille d'ecran sans mesure JS.
+ */
+.sd-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 350ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sd-collapse-open {
+  grid-template-rows: 1fr;
+}
+
+.sd-collapse-inner {
+  margin: -4px;
+  min-height: 0;
+  overflow: hidden;
+  padding: 4px;
+}
+
 .ui-btn-ghost {
   background: transparent;
   border: 1px solid var(--color-line);
@@ -255,7 +291,9 @@ html.dark .login-card .login-field {
 
 @media (prefers-reduced-motion: reduce) {
   .sd-modal-backdrop,
-  .sd-modal-card {
+  .sd-modal-card,
+  .sd-collapse {
     animation: none;
+    transition: none;
   }
 }

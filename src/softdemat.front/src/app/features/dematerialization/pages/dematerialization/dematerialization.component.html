@@ -34,7 +34,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 5h16l-6 8v6l-4-2v-4L4 5Z" />
         </svg>
         Filtrer
-        <span class="text-xs opacity-70" aria-hidden="true">{{ filterOpen() ? '▾' : '▸' }}</span>
+        <span class="text-xs opacity-70 transition-transform duration-300" [class.rotate-180]="filterOpen()" aria-hidden="true">▾</span>
       </button>
       <select class="ui-field min-w-44 flex-1" formControlName="establishmentCode" aria-label="Filtrer par établissement">
         <option value="">Tous les établissements</option>
@@ -48,8 +48,13 @@
         }
       </select>
     </div>
-    @if (filterOpen()) {
-      <div id="demat-filter-panel" class="space-y-3">
+    <div
+      id="demat-filter-panel"
+      class="sd-collapse"
+      [class.sd-collapse-open]="filterOpen()"
+      [attr.inert]="!filterOpen() ? '' : null"
+    >
+      <div class="sd-collapse-inner space-y-3 py-1">
         <div class="flex flex-wrap items-center gap-2" role="group" aria-label="Critère de recherche">
           <button
             type="button"
@@ -75,7 +80,7 @@
           </svg>
           <input
             #searchInput
-            class="ui-field pr-20 pl-10"
+            class="ui-field ui-field-icon-left ui-field-icon-right"
             formControlName="search"
             [placeholder]="searchPlaceholder()"
             [attr.aria-label]="searchPlaceholder()"
@@ -106,7 +111,7 @@
           <button type="button" class="ui-btn-ghost" (click)="resetFilter()">Réinitialiser le filtre</button>
         </div>
       </div>
-    }
+    </div>
   </div>
   <div class="ui-card mt-6 overflow-x-auto">
     <table class="w-full min-w-[48rem] text-left text-sm">
