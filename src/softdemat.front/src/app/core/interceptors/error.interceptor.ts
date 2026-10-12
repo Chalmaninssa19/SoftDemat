@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { AuthService } from '../services/auth.service';
+import { SKIP_ERROR_TOAST } from './http-context';
 
 export const errorInterceptor: HttpInterceptorFn = (request, next) => {
   const notifications = inject(NotificationService);
@@ -10,7 +11,8 @@ export const errorInterceptor: HttpInterceptorFn = (request, next) => {
   return next(request).pipe(
     catchError((error: unknown) => {
       const loginRequest = request.url.includes('/auth/login');
-      if (error instanceof HttpErrorResponse && error.status !== 401 && !loginRequest) {
+      const silent = request.context.get(SKIP_ERROR_TOAST);
+      if (!silent && error instanceof HttpErrorResponse && error.status !== 401 && !loginRequest) {
         if (error.status === 403) {
           notifications.error(auth.messageOf(error) || 'Accès interdit.');
         } else if (error.status >= 500) {

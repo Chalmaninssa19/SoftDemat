@@ -1,8 +1,9 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { ApiResponse } from '../../../core/models/api-response.model';
+import { SKIP_ERROR_TOAST } from '../../../core/interceptors/http-context';
 
 export interface SageConnection {
   server: string;
@@ -89,7 +90,8 @@ export class SettingsApiService {
   }
 
   deleteTemplate(id: number): Observable<void> {
-    return this.http.delete<void>(`${environment.apiUrl}/mail-templates/${id}`);
+    const context = new HttpContext().set(SKIP_ERROR_TOAST, true);
+    return this.http.delete<void>(`${environment.apiUrl}/mail-templates/${id}`, { context });
   }
 
   general(): Observable<GeneralParameter> {
@@ -149,7 +151,8 @@ export class SettingsApiService {
   }
 
   deleteSmtp(id: number): Observable<void> {
-    return this.http.delete<void>(`${environment.apiUrl}/smtp-settings/${id}`);
+    const context = new HttpContext().set(SKIP_ERROR_TOAST, true);
+    return this.http.delete<void>(`${environment.apiUrl}/smtp-settings/${id}`, { context });
   }
 
   testSmtp(id: number): Observable<string> {

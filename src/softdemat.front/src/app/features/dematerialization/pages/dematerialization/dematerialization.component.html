@@ -78,7 +78,7 @@
     <div class="flex gap-2">
       <button type="button" class="ui-btn-ghost" [disabled]="page() <= 1" (click)="changePage(page() - 1)">Précédent</button>
       <button type="button" class="ui-btn-ghost" [disabled]="page() * 20 >= total()" (click)="changePage(page() + 1)">Suivant</button>
-      <button type="button" class="ui-btn disabled:opacity-60" [disabled]="sending()" (click)="send()">Envoyer</button>
+      <button type="button" class="ui-btn disabled:opacity-60" [disabled]="sending() || confirmingSend()" (click)="send()">{{ sending() ? 'Envoi…' : 'Envoyer' }}</button>
     </div>
   </div>
   @if (result(); as outcome) {

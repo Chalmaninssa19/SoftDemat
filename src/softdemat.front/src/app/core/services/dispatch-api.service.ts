@@ -1,8 +1,9 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiResponse, PaginatedResult } from '../models/api-response.model';
+import { SKIP_ERROR_TOAST } from '../interceptors/http-context';
 
 export interface PayslipFile {
   fileName: string;
@@ -125,8 +126,9 @@ export class DispatchApiService {
   }
 
   send(relativeFolder: string, mailTemplateId: number, fileNames: string[]): Observable<DispatchResult> {
+    const context = new HttpContext().set(SKIP_ERROR_TOAST, true);
     return this.http
-      .post<ApiResponse<DispatchResult>>(`${environment.apiUrl}/dispatches`, { relativeFolder, mailTemplateId, fileNames })
+      .post<ApiResponse<DispatchResult>>(`${environment.apiUrl}/dispatches`, { relativeFolder, mailTemplateId, fileNames }, { context })
       .pipe(map((response) => response.data));
   }
 

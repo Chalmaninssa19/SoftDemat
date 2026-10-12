@@ -140,6 +140,25 @@ html.dark .login-card .login-field {
   opacity: 0.6;
 }
 
+.ui-btn-danger {
+  background: #c0362c;
+  border: 1px solid #c0362c;
+  border-radius: 0.5rem;
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.55rem 1rem;
+}
+
+.ui-btn-danger:hover {
+  background: #a52e26;
+  border-color: #a52e26;
+}
+
+.ui-btn-danger:disabled {
+  opacity: 0.6;
+}
+
 .ui-btn-ghost {
   background: transparent;
   border: 1px solid var(--color-line);
@@ -152,4 +171,39 @@ html.dark .login-card .login-field {
 .ui-link {
   color: var(--color-accent);
   text-decoration: underline;
+}
+
+@keyframes sd-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.sd-modal-backdrop {
+  animation: sd-modal-in 120ms ease-out;
+}
+
+.sd-modal-card {
+  animation: sd-modal-in 160ms ease-out;
+}
+
+.sd-modal-card .ui-btn:focus-visible,
+.sd-modal-card .ui-btn-ghost:focus-visible,
+.sd-modal-card .ui-btn-danger:focus-visible,
+.login-card button:focus-visible,
+.login-card a:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sd-modal-backdrop,
+  .sd-modal-card {
+    animation: none;
+  }
 }

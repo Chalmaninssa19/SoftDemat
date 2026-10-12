@@ -1,9 +1,11 @@
 import { DestroyRef, ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { HttpErrorResponse } from '@angular/common/http';
 import { DispatchApiService, DispatchResult, MailChoice, PayslipFile, PayslipUploadRejection } from '../../../../core/services/dispatch-api.service';
 import { Establishment, ReferenceApiService } from '../../../../core/services/reference-api.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { DialogService } from '../../../../shared/components/modal/dialog.service';
 import { DateFrPipe } from '../../../../shared/pipes/date-fr.pipe';
 import { readPayslipFolder } from '../../payslip-folder';
 
@@ -17,6 +19,7 @@ export class DematerializationComponent {
   private readonly api = inject(DispatchApiService);
   private readonly references = inject(ReferenceApiService);
   private readonly notifications = inject(NotificationService);
+  private readonly dialogs = inject(DialogService);
   private readonly destroyRef = inject(DestroyRef);
   readonly currentFolder = signal('');
   readonly folderName = signal('');
@@ -30,6 +33,7 @@ export class DematerializationComponent {
   readonly templates = signal<MailChoice[]>([]);
   readonly result = signal<DispatchResult | null>(null);
   readonly sending = signal(false);
+  readonly confirmingSend = signal(false);
   readonly filters = inject(FormBuilder).nonNullable.group({
     establishmentCode: [''],
     employeeMatricule: [''],
@@ -95,14 +99,25 @@ export class DematerializationComponent {
     return this.selected().includes(fileName);
   }
 
-  send(): void {
+  async send(): Promise<void> {
+    if (this.sending() || this.confirmingSend()) {
+      return;
+    }
     const names = this.selected();
     const templateId = Number(this.filters.controls.mailTemplateId.value);
     if (names.length === 0 || templateId < 1) {
       this.notifications.error('Sélectionnez un modèle et au moins un bulletin.');
       return;
     }
-    if (!confirm(`Envoyer ${names.length} bulletin(s) ?`)) {
+    this.confirmingSend.set(true);
+    const confirmed = await this.dialogs.confirm({
+      title: "Confirmer l'envoi",
+      message: `Envoyer ${names.length} bulletin(s) ? Vérifiez la sélection avant de confirmer.`,
+      confirmText: 'Envoyer',
+      cancelText: 'Annuler',
+    });
+    this.confirmingSend.set(false);
+    if (!confirmed) {
       return;
     }
     this.sending.set(true);
@@ -113,7 +128,10 @@ export class DematerializationComponent {
         this.notifications.success(`${result.sentCount} envoyé(s), ${result.notSentCount} non envoyé(s).`);
         this.load();
       },
-      error: () => this.sending.set(false),
+      error: (error: unknown) => {
+        this.sending.set(false);
+        void this.dialogs.error(this.messageOf(error));
+      },
     });
   }
 
@@ -145,5 +163,12 @@ export class DematerializationComponent {
       const defaults = result.items.filter((file) => file.selectedByDefault).map((file) => file.fileName);
       this.selected.set(defaults);
     });
+  }
+
+  private messageOf(error: unknown): string {
+    if (error instanceof HttpErrorResponse && typeof error.error?.message === 'string') {
+      return error.error.message;
+    }
+    return "L'envoi a échoué. Vérifiez la connexion puis réessayez.";
   }
 }

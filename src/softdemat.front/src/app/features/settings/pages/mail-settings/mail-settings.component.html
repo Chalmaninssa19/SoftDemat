@@ -78,7 +78,7 @@
     </div>
     <div class="flex justify-end gap-3">
       @if (mail.controls.id.value > 0) {
-        <button type="button" class="ui-btn-ghost" (click)="removeMail()">Supprimer</button>
+        <button type="button" class="ui-btn-ghost" [disabled]="removingMail()" (click)="removeMail()">{{ removingMail() ? 'Suppression…' : 'Supprimer' }}</button>
       }
       <button type="submit" class="ui-btn">Enregistrer le modèle</button>
     </div>
@@ -170,7 +170,7 @@
                     @if (!setting.isActive) {
                       <button type="button" class="ui-btn-ghost" (click)="activateSmtp(setting.id)">Activer</button>
                     }
-                    <button type="button" class="ui-btn-ghost" (click)="removeSmtp(setting.id)">Supprimer</button>
+                    <button type="button" class="ui-btn-ghost" [disabled]="removingSmtpId() !== null" (click)="removeSmtp(setting.id, setting.name)">{{ removingSmtpId() === setting.id ? 'Suppression…' : 'Supprimer' }}</button>
                   </div>
                 </td>
               </tr>

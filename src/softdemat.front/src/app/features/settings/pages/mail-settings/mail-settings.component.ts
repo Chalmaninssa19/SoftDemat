@@ -1,8 +1,10 @@
 import { DestroyRef, ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { HttpErrorResponse } from '@angular/common/http';
 import { finalize } from 'rxjs';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { DialogService } from '../../../../shared/components/modal/dialog.service';
 import { MailTemplate, SettingsApiService, SmtpSetting } from '../../services/settings-api.service';
 
 @Component({
@@ -14,11 +16,14 @@ import { MailTemplate, SettingsApiService, SmtpSetting } from '../../services/se
 export class MailSettingsComponent {
   private readonly api = inject(SettingsApiService);
   private readonly notifications = inject(NotificationService);
+  private readonly dialogs = inject(DialogService);
   private readonly destroyRef = inject(DestroyRef);
   readonly templates = signal<MailTemplate[]>([]);
   readonly smtpSettings = signal<SmtpSetting[]>([]);
   readonly selectedSmtpId = signal<number | null>(null);
   readonly testingSmtpId = signal<number | null>(null);
+  readonly removingSmtpId = signal<number | null>(null);
+  readonly removingMail = signal(false);
   readonly outlookAddress = signal('');
   readonly browsing = signal(false);
   readonly general = inject(FormBuilder).nonNullable.group({
@@ -157,10 +162,27 @@ export class MailSettingsComponent {
       .subscribe((message) => this.notifications.success(message));
   }
 
-  removeSmtp(id: number): void {
-    this.api.deleteSmtp(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.refreshSmtp();
-      this.notifications.success('Serveur SMTP supprimé.');
+  async removeSmtp(id: number, name?: string): Promise<void> {
+    if (this.removingSmtpId() !== null || this.removingMail()) {
+      return;
+    }
+    const confirmed = await this.dialogs.confirmDelete(
+      name?.trim() ? `la configuration SMTP « ${name.trim()} »` : 'cette configuration SMTP',
+    );
+    if (!confirmed) {
+      return;
+    }
+    this.removingSmtpId.set(id);
+    this.api.deleteSmtp(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.removingSmtpId.set(null);
+        this.refreshSmtp();
+        this.notifications.success('Serveur SMTP supprimé.');
+      },
+      error: (error: unknown) => {
+        this.removingSmtpId.set(null);
+        void this.dialogs.error(this.messageOf(error, 'Impossible de supprimer cette configuration SMTP.'));
+      },
     });
   }
 
@@ -216,20 +238,42 @@ export class MailSettingsComponent {
     this.mail.reset({ id: 0, mailType: '', mailCode: '', mailObject: '', mailContent: '' });
   }
 
-  removeMail(): void {
+  async removeMail(): Promise<void> {
     const id = this.mail.controls.id.value;
-    if (id < 1) {
+    if (id < 1 || this.removingMail() || this.removingSmtpId() !== null) {
       return;
     }
-    this.api.deleteTemplate(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      const remaining = this.templates().filter((item) => item.id !== id);
-      this.templates.set(remaining);
-      if (remaining[0]) {
-        this.select(remaining[0].id);
-      } else {
-        this.createMail();
-      }
-      this.notifications.success('Modèle de mail supprimé.');
+    const current = this.templates().find((item) => item.id === id);
+    const confirmed = await this.dialogs.confirmDelete(
+      current?.mailType?.trim() ? `le modèle de mail « ${current.mailType.trim()} »` : 'ce modèle de mail',
+    );
+    if (!confirmed) {
+      return;
+    }
+    this.removingMail.set(true);
+    this.api.deleteTemplate(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.removingMail.set(false);
+        const remaining = this.templates().filter((item) => item.id !== id);
+        this.templates.set(remaining);
+        if (remaining[0]) {
+          this.select(remaining[0].id);
+        } else {
+          this.createMail();
+        }
+        this.notifications.success('Modèle de mail supprimé.');
+      },
+      error: (error: unknown) => {
+        this.removingMail.set(false);
+        void this.dialogs.error(this.messageOf(error, 'Impossible de supprimer ce modèle de mail.'));
+      },
     });
+  }
+
+  private messageOf(error: unknown, fallback: string): string {
+    if (error instanceof HttpErrorResponse && typeof error.error?.message === 'string') {
+      return error.error.message;
+    }
+    return fallback;
   }
 }

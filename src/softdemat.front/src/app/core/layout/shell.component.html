@@ -57,34 +57,28 @@
 </div>
 
 @if (logoutConfirmationOpen()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" (click)="closeLogoutConfirmation()">
-    <section
-      class="ui-card w-full max-w-sm space-y-5 p-6"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="logout-dialog-title"
-      (click)="$event.stopPropagation()"
-    >
-      <div class="flex items-start gap-3">
-        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-500" aria-hidden="true">
-          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10 17l5-5-5-5m5 5H3m9-9h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5"></path>
-          </svg>
-        </span>
-        <div>
-          <h2 id="logout-dialog-title" class="ui-title">Confirmer la déconnexion</h2>
-          <p class="mt-2 text-sm text-muted">Voulez-vous vraiment vous déconnecter de votre espace ?</p>
-        </div>
+  <app-modal-shell labelledBy="logout-dialog-title" (closed)="closeLogoutConfirmation()">
+    <app-modal-header />
+    <div class="mt-6 flex items-start gap-3">
+      <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-500" aria-hidden="true">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 17l5-5-5-5m5 5H3m9-9h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5"></path>
+        </svg>
+      </span>
+      <div>
+        <h2 id="logout-dialog-title" class="text-lg font-semibold">Confirmer la déconnexion</h2>
+        <p class="mt-2 text-sm opacity-80">Voulez-vous vraiment vous déconnecter de votre espace ?</p>
       </div>
-      <div class="flex justify-end gap-3">
-        <button type="button" class="ui-btn-ghost" (click)="closeLogoutConfirmation()">Annuler</button>
-        <button type="button" class="ui-btn inline-flex items-center gap-2" (click)="confirmLogout()">
-          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10 17l5-5-5-5m5 5H3m9-9h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5"></path>
-          </svg>
-          Déconnexion
-        </button>
-      </div>
-    </section>
-  </div>
+    </div>
+    <div class="mt-6 flex flex-col-reverse justify-end gap-3 sm:flex-row">
+      <button type="button" class="ui-btn-ghost" autofocus (click)="closeLogoutConfirmation()">Annuler</button>
+      <button type="button" class="ui-btn inline-flex items-center justify-center gap-2" (click)="confirmLogout()">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 17l5-5-5-5m5 5H3m9-9h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5"></path>
+        </svg>
+        Déconnexion
+      </button>
+    </div>
+    <p class="mt-6 border-t border-black/10 pt-4 text-center text-xs opacity-60">Softwell · SOFT-DEMAT</p>
+  </app-modal-shell>
 }

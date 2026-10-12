@@ -4,10 +4,12 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } fro
 import { filter, map, startWith } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { ThemeToggleComponent } from './theme-toggle.component';
+import { ModalHeaderComponent } from '../../shared/components/modal/modal-header.component';
+import { ModalShellComponent } from '../../shared/components/modal/modal-shell.component';
 
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, ThemeToggleComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, ThemeToggleComponent, ModalHeaderComponent, ModalShellComponent],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

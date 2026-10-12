@@ -3,12 +3,13 @@
     <button
       type="button"
       class="rounded-lg border px-4 py-3 text-left text-sm shadow"
-      [class.border-accent]="toast.kind !== 'error'"
-      [class.bg-ink]="toast.kind !== 'error'"
-      [class.text-content]="toast.kind !== 'error'"
-      [class.border-line]="toast.kind === 'error'"
-      [class.bg-panel]="toast.kind === 'error'"
-      [class.text-accent]="toast.kind === 'error'"
+      [class.border-accent]="toast.kind === 'success' || toast.kind === 'info'"
+      [class.bg-ink]="toast.kind === 'success' || toast.kind === 'info'"
+      [class.text-content]="toast.kind === 'success' || toast.kind === 'info'"
+      [class.border-line]="toast.kind === 'error' || toast.kind === 'warning'"
+      [class.bg-panel]="toast.kind === 'error' || toast.kind === 'warning'"
+      [class.text-accent]="toast.kind === 'error' || toast.kind === 'warning'"
+      [attr.role]="toast.kind === 'error' || toast.kind === 'warning' ? 'alert' : 'status'"
       (click)="notifications.dismiss(toast.id)"
     >
       {{ toast.message }}
