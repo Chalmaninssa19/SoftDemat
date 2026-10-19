@@ -4,7 +4,12 @@
       <p class="ui-kicker">Administration</p>
       <h1 class="ui-title mt-1">Utilisateurs</h1>
     </div>
-    <button type="button" class="ui-btn" (click)="openCreate()">Créer</button>
+    <button type="button" class="ui-btn inline-flex items-center gap-2" (click)="openCreate()">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+        <path stroke-linecap="round" d="M12 5v14M5 12h14" />
+      </svg>
+      Créer
+    </button>
   </div>
   @if (temporaryPassword()) {
     <p class="mt-4 rounded-lg bg-accent/15 px-3 py-2 text-sm text-accent">Mot de passe temporaire : {{ temporaryPassword() }}</p>
@@ -29,10 +34,12 @@
             <td class="px-3 py-2">{{ user.email || '—' }}</td>
             <td class="px-3 py-2">{{ user.role }}</td>
             <td class="px-3 py-2">{{ user.pc }}</td>
-            <td class="space-x-2 px-3 py-2">
-              <button type="button" class="ui-link" (click)="edit(user)">Modifier</button>
-              <button type="button" class="ui-link" (click)="reset(user)">Réinitialiser</button>
-              <button type="button" class="ui-link" (click)="remove(user)">Supprimer</button>
+            <td class="px-3 py-2">
+              <span class="inline-flex items-center gap-2">
+                <app-icon-button icon="edit" label="Modifier" [disabled]="isBusy(user)" (click)="edit(user)" />
+                <app-icon-button icon="reset" label="Réinitialiser le mot de passe" [disabled]="isBusy(user)" [loading]="isBusy(user) && busyAction() === 'reset'" (click)="reset(user)" />
+                <app-icon-button icon="delete" label="Supprimer" variant="danger" [disabled]="isBusy(user)" [loading]="isBusy(user) && busyAction() === 'delete'" (click)="remove(user)" />
+              </span>
             </td>
           </tr>
         }
@@ -43,19 +50,16 @@
 </section>
 
 @if (modalOpen()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" (click)="closeModal()">
+  <app-modal-shell labelledBy="user-dialog-title" [wide]="true" [busy]="submitting()" (closed)="closeModal()">
     <form
-      class="ui-card w-full max-w-lg space-y-4 p-6"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="user-dialog-title"
+      class="space-y-4"
       [formGroup]="form"
-      (click)="$event.stopPropagation()"
       (ngSubmit)="save()"
     >
+      <app-modal-header />
       <div>
-        <p class="ui-kicker">Administration</p>
-        <h2 id="user-dialog-title" class="ui-title mt-1">{{ editingId() ? "Modifier l'utilisateur" : 'Nouvel utilisateur' }}</h2>
+        <p class="ui-kicker mt-6">Administration</p>
+        <h2 id="user-dialog-title" class="mt-1 text-xl font-semibold">{{ editingId() ? "Modifier l'utilisateur" : 'Nouvel utilisateur' }}</h2>
       </div>
       <div>
         <label class="ui-label" for="user-name">Nom</label>
@@ -96,10 +100,10 @@
           <app-field-error [message]="fieldError('passwordConfirmation')" />
         </div>
       }
-      <div class="flex justify-end gap-3">
+      <div class="flex flex-col-reverse justify-end gap-3 sm:flex-row">
         <button type="button" class="ui-btn-ghost" [disabled]="submitting()" (click)="closeModal()">Annuler</button>
-        <button type="submit" class="ui-btn" [disabled]="submitting()">{{ editingId() ? 'Mettre à jour' : 'Créer' }}</button>
+        <button type="submit" class="ui-btn" [disabled]="submitting()">{{ submitting() ? 'Enregistrement…' : (editingId() ? 'Mettre à jour' : 'Créer') }}</button>
       </div>
     </form>
-  </div>
+  </app-modal-shell>
 }

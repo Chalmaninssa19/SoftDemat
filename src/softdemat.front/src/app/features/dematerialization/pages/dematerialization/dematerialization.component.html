@@ -21,23 +21,98 @@
       }
     </ul>
   }
-  <form class="ui-card mt-6 grid gap-3 p-4 md:grid-cols-5" [formGroup]="filters" (ngSubmit)="applyFilters()">
-    <select class="ui-field" formControlName="establishmentCode">
-      <option value="">Tous les établissements</option>
-      @for (item of establishments(); track item.code) {
-        <option [value]="item.code">{{ item.name }}</option>
-      }
-    </select>
-    <input class="ui-field" placeholder="Matricule exact" formControlName="employeeMatricule" />
-    <input class="ui-field" placeholder="Matricule contient" formControlName="matricule" />
-    <input class="ui-field" placeholder="Nom contient" formControlName="name" />
-    <button type="submit" class="ui-btn">Filtrer</button>
-    <select class="ui-field md:col-span-2" formControlName="mailTemplateId">
-      @for (template of templates(); track template.id) {
-        <option [value]="template.id">{{ template.mailType }}</option>
-      }
-    </select>
-  </form>
+  <div class="ui-card mt-6 space-y-4 p-4" [formGroup]="filters">
+    <div class="flex flex-wrap items-center gap-3">
+      <button
+        type="button"
+        class="ui-btn-ghost inline-flex items-center gap-2"
+        [attr.aria-expanded]="filterOpen()"
+        aria-controls="demat-filter-panel"
+        (click)="toggleFilter()"
+      >
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 5h16l-6 8v6l-4-2v-4L4 5Z" />
+        </svg>
+        Filtrer
+        <span class="text-xs opacity-70 transition-transform duration-300" [class.rotate-180]="filterOpen()" aria-hidden="true">▾</span>
+      </button>
+      <select class="ui-field min-w-44 flex-1" formControlName="establishmentCode" aria-label="Filtrer par établissement">
+        <option value="">Tous les établissements</option>
+        @for (item of establishments(); track item.code) {
+          <option [value]="item.code">{{ item.name }}</option>
+        }
+      </select>
+      <select class="ui-field min-w-44 flex-1" formControlName="mailTemplateId" aria-label="Modèle de mail pour l'envoi">
+        @for (template of templates(); track template.id) {
+          <option [value]="template.id">{{ template.mailType }}</option>
+        }
+      </select>
+    </div>
+    <div
+      id="demat-filter-panel"
+      class="sd-collapse"
+      [class.sd-collapse-open]="filterOpen()"
+      [attr.inert]="!filterOpen() ? '' : null"
+    >
+      <div class="sd-collapse-inner space-y-3 py-1">
+        <div class="flex flex-wrap items-center gap-2" role="group" aria-label="Critère de recherche">
+          <button
+            type="button"
+            [class]="criterion() === 'name' ? 'ui-btn' : 'ui-btn-ghost'"
+            [attr.aria-pressed]="criterion() === 'name'"
+            (click)="selectCriterion('name')"
+          >
+            Par nom
+          </button>
+          <button
+            type="button"
+            [class]="criterion() === 'matricule' ? 'ui-btn' : 'ui-btn-ghost'"
+            [attr.aria-pressed]="criterion() === 'matricule'"
+            (click)="selectCriterion('matricule')"
+          >
+            Par matricule
+          </button>
+        </div>
+        <div class="relative">
+          <svg class="pointer-events-none absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path stroke-linecap="round" d="m20 20-3.5-3.5" />
+          </svg>
+          <input
+            #searchInput
+            class="ui-field ui-field-icon-left ui-field-icon-right"
+            formControlName="search"
+            [placeholder]="searchPlaceholder()"
+            [attr.aria-label]="searchPlaceholder()"
+            autocomplete="off"
+          />
+          <span class="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1">
+            @if (searching()) {
+              <svg class="h-5 w-5 animate-spin opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" aria-label="Recherche en cours">
+                <path stroke-linecap="round" d="M12 3a9 9 0 1 0 9 9" />
+              </svg>
+            }
+            @if (filters.controls.search.value) {
+              <button
+                type="button"
+                class="flex h-8 w-8 items-center justify-center rounded-md opacity-70 hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                title="Effacer la recherche"
+                aria-label="Effacer la recherche"
+                (click)="clearSearch()"
+              >
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" d="M6 6l12 12M18 6 6 18" />
+                </svg>
+              </button>
+            }
+          </span>
+        </div>
+        <div class="flex justify-end">
+          <button type="button" class="ui-btn-ghost" (click)="resetFilter()">Réinitialiser le filtre</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="ui-card mt-6 overflow-x-auto">
     <table class="w-full min-w-[48rem] text-left text-sm">
       <thead class="text-muted">
@@ -55,12 +130,12 @@
         @if (!currentFolder()) {
           <tr><td class="px-3 py-6 text-muted" colspan="7">Choisissez un dossier de bulletins sur ce poste.</td></tr>
         } @else if (files().length === 0) {
-          <tr><td class="px-3 py-6 text-muted" colspan="7">Aucun bulletin ne correspond à ces filtres.</td></tr>
+          <tr><td class="px-3 py-6 text-muted" colspan="7">Aucun bulletin ne correspond à cette recherche.</td></tr>
         }
         @for (file of files(); track file.fileName) {
           <tr class="border-b border-line">
             <td class="px-3 py-2">
-              <input type="checkbox" [checked]="isSelected(file.fileName)" (change)="toggle(file.fileName, $event)" />
+              <input type="checkbox" class="h-5 w-5" [checked]="isSelected(file.fileName)" (change)="toggle(file.fileName, $event)" [attr.aria-label]="'Sélectionner ' + file.fileName" />
             </td>
             <td class="px-3 py-2">{{ file.matricule }}</td>
             <td class="px-3 py-2">{{ file.fullName }}</td>
@@ -74,11 +149,11 @@
     </table>
   </div>
   <div class="mt-4 flex items-center justify-between gap-3">
-    <p class="text-sm text-muted">{{ total() }} bulletin(s)</p>
+    <p class="text-sm text-muted" role="status">{{ total() }} bulletin(s)</p>
     <div class="flex gap-2">
       <button type="button" class="ui-btn-ghost" [disabled]="page() <= 1" (click)="changePage(page() - 1)">Précédent</button>
       <button type="button" class="ui-btn-ghost" [disabled]="page() * 20 >= total()" (click)="changePage(page() + 1)">Suivant</button>
-      <button type="button" class="ui-btn disabled:opacity-60" [disabled]="sending()" (click)="send()">Envoyer</button>
+      <button type="button" class="ui-btn disabled:opacity-60" [disabled]="sending() || confirmingSend()" (click)="send()">{{ sending() ? 'Envoi…' : 'Envoyer' }}</button>
     </div>
   </div>
   @if (result(); as outcome) {

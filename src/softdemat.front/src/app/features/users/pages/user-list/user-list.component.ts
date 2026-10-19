@@ -5,16 +5,21 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { UsersApiService, UserAccount, UserPayload } from '../../services/users-api.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { FieldErrorComponent } from '../../../../shared/components/field-error/field-error.component';
+import { DialogService } from '../../../../shared/components/modal/dialog.service';
+import { IconButtonComponent } from '../../../../shared/components/icon-button/icon-button.component';
+import { ModalHeaderComponent } from '../../../../shared/components/modal/modal-header.component';
+import { ModalShellComponent } from '../../../../shared/components/modal/modal-shell.component';
 
 @Component({
   selector: 'app-user-list',
-  imports: [ReactiveFormsModule, FieldErrorComponent],
+  imports: [ReactiveFormsModule, FieldErrorComponent, IconButtonComponent, ModalHeaderComponent, ModalShellComponent],
   templateUrl: './user-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserListComponent {
   private readonly api = inject(UsersApiService);
   private readonly notifications = inject(NotificationService);
+  private readonly dialogs = inject(DialogService);
   private readonly destroyRef = inject(DestroyRef);
   readonly users = signal<UserAccount[]>([]);
   readonly total = signal(0);
@@ -22,6 +27,8 @@ export class UserListComponent {
   readonly editingId = signal<number | null>(null);
   readonly modalOpen = signal(false);
   readonly submitting = signal(false);
+  readonly busyUserId = signal<number | null>(null);
+  readonly busyAction = signal<'delete' | 'reset' | null>(null);
   readonly temporaryPassword = signal<string | null>(null);
   readonly form = inject(FormBuilder).nonNullable.group({
     name: ['', Validators.required],
@@ -67,7 +74,7 @@ export class UserListComponent {
   }
 
   closeModal(): void {
-    if (this.submitting()) {
+    if (this.submitting() || this.busyUserId() !== null) {
       return;
     }
     this.modalOpen.set(false);
@@ -92,24 +99,67 @@ export class UserListComponent {
     });
   }
 
-  remove(user: UserAccount): void {
-    if (!confirm(`Supprimer l'utilisateur ${user.username} ?`)) {
+  async remove(user: UserAccount): Promise<void> {
+    if (this.busyUserId() !== null || this.submitting()) {
       return;
     }
-    this.api.delete(user.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.notifications.success('Utilisateur supprimé.');
-      this.load();
+    const confirmed = await this.dialogs.confirmDelete(`l'utilisateur ${user.username}`);
+    if (!confirmed) {
+      return;
+    }
+    this.busyUserId.set(user.id);
+    this.busyAction.set('delete');
+    this.api.delete(user.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.busyUserId.set(null);
+        this.busyAction.set(null);
+        this.notifications.success('Utilisateur supprimé.');
+        this.load();
+      },
+      error: (error: unknown) => {
+        this.busyUserId.set(null);
+        this.busyAction.set(null);
+        void this.dialogs.error(this.messageOf(error, 'Impossible de supprimer cet utilisateur.'));
+      },
     });
   }
 
-  reset(user: UserAccount): void {
-    if (!confirm(`Réinitialiser le mot de passe de ${user.username} ?`)) {
+  async reset(user: UserAccount): Promise<void> {
+    if (this.busyUserId() !== null || this.submitting()) {
       return;
     }
-    this.api.resetPassword(user.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((password) => {
-      this.temporaryPassword.set(password);
-      this.notifications.success('Mot de passe temporaire généré.');
+    const confirmed = await this.dialogs.confirm({
+      title: 'Confirmer la réinitialisation',
+      message: `Réinitialiser le mot de passe de « ${user.username} » ? Un mot de passe temporaire sera généré.`,
+      confirmText: 'Réinitialiser',
+      cancelText: 'Annuler',
     });
+    if (!confirmed) {
+      return;
+    }
+    this.busyUserId.set(user.id);
+    this.busyAction.set('reset');
+    this.api.resetPassword(user.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (password) => {
+        this.busyUserId.set(null);
+        this.busyAction.set(null);
+        this.temporaryPassword.set(password);
+        this.notifications.success('Mot de passe temporaire généré.');
+        void this.dialogs.info({
+          title: 'Mot de passe temporaire généré',
+          message: `Mot de passe temporaire de « ${user.username} » : ${password}`,
+        });
+      },
+      error: (error: unknown) => {
+        this.busyUserId.set(null);
+        this.busyAction.set(null);
+        void this.dialogs.error(this.messageOf(error, 'Impossible de réinitialiser ce mot de passe.'));
+      },
+    });
+  }
+
+  isBusy(user: UserAccount): boolean {
+    return this.busyUserId() === user.id;
   }
 
   fieldError(name: 'name' | 'username' | 'email' | 'pc' | 'password' | 'passwordConfirmation'): string | null {
@@ -131,7 +181,7 @@ export class UserListComponent {
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
-    if (this.modalOpen()) {
+    if (this.modalOpen() && this.dialogs.current() === null) {
       this.closeModal();
     }
   }
@@ -169,11 +219,11 @@ export class UserListComponent {
     return { ...raw, roleId: Number(raw.roleId) };
   }
 
-  private messageOf(error: unknown): string {
+  private messageOf(error: unknown, fallback = 'Enregistrement impossible.'): string {
     if (error instanceof HttpErrorResponse && typeof error.error?.message === 'string') {
       return error.error.message;
     }
-    return 'Enregistrement impossible.';
+    return fallback;
   }
 
   private passwordsDiffer(): boolean {

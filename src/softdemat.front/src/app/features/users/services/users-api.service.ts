@@ -1,8 +1,9 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { ApiResponse, PaginatedResult } from '../../../core/models/api-response.model';
+import { SKIP_ERROR_TOAST } from '../../../core/interceptors/http-context';
 
 export interface UserAccount {
   id: number;
@@ -42,12 +43,14 @@ export class UsersApiService {
   }
 
   delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+    const context = new HttpContext().set(SKIP_ERROR_TOAST, true);
+    return this.http.delete<void>(`${this.baseUrl}/${id}`, { context });
   }
 
   resetPassword(id: number): Observable<string> {
+    const context = new HttpContext().set(SKIP_ERROR_TOAST, true);
     return this.http
-      .post<ApiResponse<{ temporaryPassword: string }>>(`${this.baseUrl}/${id}/password-resets`, {})
+      .post<ApiResponse<{ temporaryPassword: string }>>(`${this.baseUrl}/${id}/password-resets`, {}, { context })
       .pipe(map((response) => response.data.temporaryPassword));
   }
 }
