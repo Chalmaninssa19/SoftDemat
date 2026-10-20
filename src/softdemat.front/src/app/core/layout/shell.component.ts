@@ -20,6 +20,7 @@ export class ShellComponent {
   readonly session = this.auth.session;
   readonly isAdmin = computed(() => this.session()?.role === 'Administrateur');
   readonly menuOpen = signal(false);
+  readonly collapsed = signal(false);
   readonly settingsOpen = signal(this.router.url.startsWith('/parametrage'));
   readonly logoutConfirmationOpen = signal(false);
   private readonly url = toSignal(
@@ -73,6 +74,10 @@ export class ShellComponent {
 
   closeMenu(): void {
     this.menuOpen.set(false);
+  }
+
+  toggleCollapsed(): void {
+    this.collapsed.update((value) => !value);
   }
 
   toggleSettings(): void {
